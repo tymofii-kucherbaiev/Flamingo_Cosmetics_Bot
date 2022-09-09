@@ -14,22 +14,36 @@ switch ($data['text']) {
             $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code',
                 "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}'");
 
-        $oKeyboard = new Keyboard('inline_keyboard', true);
-        $oKeyboard->add(' Каталог', 'a', 'a', 0, 0);
+        $oKeyboard = new Keyboard('keyboard', true);
+        $oKeyboard->add('Каталог', 'a', 'a', 0, 0);
 
 
         if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND phone_number IS NOT NULL")->num_rows)
-            $oKeyboard->add(' Кабинет', 'a', 'a', 0, 1);
+            $oKeyboard->add('Кабинет', 'a', 'a', 0, 1);
         else
-            $oKeyboard->add(' Войти', 'a', 'a', 0, 1);
+            $oKeyboard->add('Войти', 'a', 'a', 0, 1);
 
 
-        $oKeyboard->add(' Заказы', 'a', 'a', 1, 0);
-        $oKeyboard->add(' Помощь', 'a', 'a', 1, 1);
+        $oKeyboard->add('Заказы', 'a', 'a', 1, 0);
+        $oKeyboard->add('Помощь', 'a', 'a', 1, 1);
 //$oKeyboard->add(' English', 'a', 'a', 2, 0);
 //$oKeyboard->add(' Deutsch', 'a', 'a', 3, 1);
         $keyboard = $oKeyboard->get();
         break;
 
+    case '/catalog':
 
+        break;
+
+    case '/cart':
+
+        break;
+
+    case '/account':
+
+        break;
+
+    case '/help':
+
+        break;
 }

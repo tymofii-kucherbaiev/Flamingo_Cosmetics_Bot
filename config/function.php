@@ -197,13 +197,3 @@ class SQL
         $this->DB_link->close();
     }
 }
-
-
-
-
-//$token = '5322180222:AAHzWzIqD3XEvJcvV28xo-Fd56oo-H8SAiU';
-//$directory = $_SERVER['DOCUMENT_ROOT'] . '/info.php';
-//
-//$cla = new API($token);
-//$cla->setWebhook($directory);
-
