@@ -119,8 +119,8 @@ class SQL
             `last_name` VARCHAR(255) NULL DEFAULT NULL,
             `phone_number` INT NULL DEFAULT NULL,
             `language_code` VARCHAR(255) NULL DEFAULT NULL,
-            `age` VARCHAR(255) NULL DEFAULT NULL,
-            `age` VARCHAR(255) NULL DEFAULT NULL,
+            `birthday` DATE NULL DEFAULT NULL,
+            `sex` VARCHAR(255) NULL DEFAULT NULL,
             `user_role` VARCHAR(255) NOT NULL DEFAULT 'viewer'", "`id`");
 
         $this->CREATE_TABLE('product',

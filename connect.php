@@ -9,16 +9,21 @@ if (file_get_contents('php://input')) {
      * @var string $DB_botname
      */
 
-require './config/function.php';
-require './config/config.php';
+    require './config/function.php';
+    require './config/config.php';
 
-$SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname);
-$API = new API('5322180222:AAHzWzIqD3XEvJcvV28xo-Fd56oo-H8SAiU');
+    $SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname);
+    $API = new API('5322180222:AAHzWzIqD3XEvJcvV28xo-Fd56oo-H8SAiU');
 
 
 
     $data = json_decode(file_get_contents('php://input'), true);
 
+    if (array_key_exists('callback_query', $data)) {
+        $data = $data['callback_query'];
+    } else {
+        $data = $data['message'];
+    }
 
     $message = $data['message']['text'];
     $data_from = $data['message']['from'];
