@@ -63,13 +63,13 @@ class Keyboard
     private array $keyboard;
     private string $type;
 
-    public function __construct($type_keyboard, $one_time_keyboard)
+    public function __construct ($type_keyboard, $one_time_keyboard)
     {
         $this->type = $type_keyboard;
         $this->keyboard = array($this->type => array(), 'resize_keyboard' => true, 'one_time_keyboard' => $one_time_keyboard);
     }
 
-    public function add ($text, $action, $type, $row, $coll)
+    public function add ($text, $action, $type, $row, $coll): void
     {
         $button =
             ["text" => $text,
@@ -78,7 +78,7 @@ class Keyboard
         $this->keyboard[$this->type][$row][$coll] = $button;
     }
 
-    public function get ()
+    public function get (): bool|string
     {
         return json_encode($this->keyboard);
     }

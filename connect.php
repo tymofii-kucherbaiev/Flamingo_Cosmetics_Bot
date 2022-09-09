@@ -29,13 +29,13 @@ if (file_get_contents('php://input')) {
     $user_last_name = $data['from']['last_name'];
     $user_username = $data['from']['username'];
 
+    $API->answerCallbackQuery(NULL, NULL, $data['id']);
+
     if (array_key_exists('callback_query', $input)) {
         require './query/callback.php';
-        $API->sendMessage('Hello', $user_id, $keyboard);
-        $API->answerCallbackQuery(NULL, NULL, $data['id']);
     } else {
-        $API->sendMessage('Hello', $user_id, $keyboard);
         require './query/private.php';
     }
     $SQL->connect_close();
+    file_put_contents('json.json', $input = file_get_contents('php://input'));
 }
