@@ -15,31 +15,31 @@ if (file_get_contents('php://input')) {
     $SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname);
     $API = new API('5322180222:AAHzWzIqD3XEvJcvV28xo-Fd56oo-H8SAiU');
 
+    $input = json_decode(file_get_contents('php://input'), true);
 
-
-    $data = json_decode(file_get_contents('php://input'), true);
-
-    if (array_key_exists('callback_query', $data)) {
-        $data = $data['callback_query'];
+    if (array_key_exists('callback_query', $input)) {
+        $data = $input['callback_query'];
     } else {
-        $data = $data['message'];
+        $data = $input['message'];
     }
 
-    $message = $data['message']['text'];
-    $data_from = $data['message']['from'];
+    $user_message = $data['text'];
+    $user_id = $data['from']['id'];
+    $user_first_name = $data['from']['first_name'];
+    $user_last_name = $data['from']['last_name'];
+    $user_username = $data['from']['username'];
 
     if ($message = '/start')
-        if (!$SQL->SELECT_FROM('*', 'users', "id = {$data['message']['from']['id']}")->num_rows)
+        if (!$SQL->SELECT_FROM('*', 'users', "id = $user_id")->num_rows)
             $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code',
-                "'{$data_from['id']}', '{$data_from['username']}', '{$data_from['first_name']}', '{$data_from['last_name']}',
-            '{$data_from['language_code']}'");
+                "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}'");
 
 
     $oKeyboard = new Keyboard('keyboard', true);
     $oKeyboard->add(' Каталог', 'a', 'a', 0, 0);
 
 
-    if ($SQL->SELECT_FROM('*', 'users', "id = {$data['message']['from']['id']} AND phone_number IS NOT NULL")->num_rows)
+    if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND phone_number IS NOT NULL")->num_rows)
         $oKeyboard->add(' Кабинет', 'a', 'a', 0, 1);
     else
         $oKeyboard->add(' Войти', 'a', 'a', 0, 1);
@@ -52,21 +52,13 @@ if (file_get_contents('php://input')) {
     $keyboard = $oKeyboard->get();
 
 
-    $API->sendMessage('Hello', $data['message']['from']['id'], $keyboard);
-    file_put_contents('json.json', $data = file_get_contents('php://input'));
+    $API->sendMessage('Hello', $user_id, $keyboard);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+    if (array_key_exists('callback_query', $input)) {
+        require './query/callback.php';
+    } else {
+        require './query/private.php';
+    }
     $SQL->connect_close();
 }
