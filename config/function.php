@@ -107,23 +107,24 @@ class SQL
             database: $this->DB_database);
         $this->DB_link->query('SET CHARSET UTF8');
 
-        $this->CREATE_TABLE('config',
-            "`value` VARCHAR(255) NOT NULL,
-            `description` VARCHAR(255) NULL DEFAULT NULL,
-            `active` BOOLEAN NULL DEFAULT NULL", "`value` (11)");
+//        $this->CREATE_TABLE('config',
+//            "`value` VARCHAR(255) NOT NULL,
+//            `description` VARCHAR(255) NULL DEFAULT NULL,
+//            `active` BOOLEAN NULL DEFAULT NULL", "`value` (11)");
 
         $this->CREATE_TABLE('users',
             "`id` INT NOT NULL,
-            `username` VARCHAR(255) NOT NULL,
+            `username` VARCHAR(255) NULL DEFAULT NULL,
             `first_name` VARCHAR(255) NOT NULL,
             `last_name` VARCHAR(255) NULL DEFAULT NULL,
             `phone_number` INT NULL DEFAULT NULL,
             `language_code` VARCHAR(255) NULL DEFAULT NULL,
-            `is_bot` BOOLEAN NULL DEFAULT NULL,
+            `age` VARCHAR(255) NULL DEFAULT NULL,
+            `age` VARCHAR(255) NULL DEFAULT NULL,
             `user_role` VARCHAR(255) NOT NULL DEFAULT 'viewer'", "`id`");
 
         $this->CREATE_TABLE('product',
-            "`vendor_code` INT NOT NULL,
+            "`vendor_code` BIGINT NOT NULL,
             `barcode_original` BIGINT NULL DEFAULT NULL,
             `barcode_discount` BIGINT NULL DEFAULT NULL,
             `title` VARCHAR(255) NULL DEFAULT NULL,
@@ -136,11 +137,11 @@ class SQL
             `price_new` INT NULL DEFAULT NULL,
             `image_id` INT NULL DEFAULT NULL,
             `creator` VARCHAR(255) NOT NULL", "`vendor_code`");
-
-        $this->CREATE_TABLE('category',
-            "`id` INT NOT NULL,
-            `count_product` INT NULL DEFAULT NULL,
-            `description` VARCHAR(255) NOT NULL", "`id`");
+//
+//        $this->CREATE_TABLE('category',
+//            "`id` INT NOT NULL,
+//            `count_product` INT NULL DEFAULT NULL,
+//            `description` VARCHAR(255) NOT NULL", "`id`");
 
 
     }
@@ -163,14 +164,14 @@ class SQL
     public function INSERT_INTO ($TABLE_NAME, $COLUMN, $VALUE): void
     {
         $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
-        $this->DB_link->query("INSERT INTO $TABLE_NAME $COLUMN VALUES ($VALUE)");
+        $this->DB_link->query("INSERT INTO $TABLE_NAME ($COLUMN) VALUES ($VALUE)");
 
     }
 
-    public function SELECT_FROM ($SELECT, $TABLE_NAME, $VALUE): bool|mysqli_result
+    public function SELECT_FROM ($SELECT, $TABLE_NAME, $WHERE): bool|mysqli_result
     {
         $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
-        return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $VALUE");
+        return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE");
     }
 
     public function UPDATE ($TABLE_NAME, $SET, $WHERE)

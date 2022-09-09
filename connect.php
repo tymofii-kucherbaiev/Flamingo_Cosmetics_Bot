@@ -1,27 +1,67 @@
 <?php
-require $_SERVER['DOCUMENT_ROOT'] . '/config/function.php';
-$directory = 'smakolyky.org/connect.php';
+if (file_get_contents('php://input')) {
+    /**
+     * @var string $DB_database
+     * @var string $DB_hostname
+     * @var string $DB_username
+     * @var string $DB_password
+     * @var string $DB_keygen
+     * @var string $DB_botname
+     */
 
-$DB_database = 'mn469049_db';
-$DB_hostname = 'mn469049.mysql.tools';
-$DB_username = 'mn469049_db';
-$DB_password = 'jPWQQ8U9';
-$DB_keygen = 'm205r1G6NHNs'; //12 values
-$DB_botname = 'Lamour_Famille_Bot'; //12 values
+require './config/function.php';
+require './config/config.php';
 
 $SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname);
-$API = new API('5663303135:AAEr_S-ue-tivrF6WRfpD94_KnR9BAOAjxs');
+$API = new API('5322180222:AAHzWzIqD3XEvJcvV28xo-Fd56oo-H8SAiU');
 
 
-if (!$SQL->SELECT_FROM('*', 'config', "`Value` LIKE 'WebHook'")->num_rows) {
-    $setWebhook = json_decode($API->setWebhook(directory: $directory), true);
 
-    $SQL->INSERT_INTO('config',
-    '(Value, Description, Active)',
-    "'" . explode(' ', $setWebhook['description'])[0] . "', '$directory', '{$setWebhook['result']}'");
+    $data = json_decode(file_get_contents('php://input'), true);
+
+
+    $message = $data['message']['text'];
+    $data_from = $data['message']['from'];
+
+    if ($message = '/start')
+        if (!$SQL->SELECT_FROM('*', 'users', "id = {$data['message']['from']['id']}")->num_rows)
+            $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code',
+                "'{$data_from['id']}', '{$data_from['username']}', '{$data_from['first_name']}', '{$data_from['last_name']}',
+            '{$data_from['language_code']}'");
+
+
+    $oKeyboard = new Keyboard('keyboard', true);
+    $oKeyboard->add(' Каталог', 'a', 'a', 0, 0);
+
+
+    if ($SQL->SELECT_FROM('*', 'users', "id = {$data['message']['from']['id']} AND phone_number IS NOT NULL")->num_rows)
+        $oKeyboard->add(' Кабинет', 'a', 'a', 0, 1);
+    else
+        $oKeyboard->add(' Войти', 'a', 'a', 0, 1);
+
+
+    $oKeyboard->add(' Заказы', 'a', 'a', 1, 0);
+    $oKeyboard->add(' Помощь', 'a', 'a', 1, 1);
+//$oKeyboard->add(' English', 'a', 'a', 2, 0);
+//$oKeyboard->add(' Deutsch', 'a', 'a', 3, 1);
+    $keyboard = $oKeyboard->get();
+
+
+    $API->sendMessage('Hello', $data['message']['from']['id'], $keyboard);
+    file_put_contents('json.json', $data = file_get_contents('php://input'));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    $SQL->connect_close();
 }
-
-$SQL->connect_close();
-
-file_put_contents('json.json', $data = file_get_contents('php://input'));
-
