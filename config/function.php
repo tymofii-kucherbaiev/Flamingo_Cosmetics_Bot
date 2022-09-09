@@ -45,7 +45,15 @@ class API
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-
+    public function answerCallbackQuery ($text, $show_alert, $callback_query_id): void
+    {
+        $request_params = array(
+            'text' => $text,
+            'show_alert' => $show_alert,
+            'callback_query_id' => $callback_query_id
+        );
+        $this->curl(method: __FUNCTION__, request_params: $request_params);
+    }
 
 }
 
@@ -105,8 +113,13 @@ class SQL
             username: $this->DB_username,
             password: $this->DB_password,
             database: $this->DB_database);
-        $this->DB_link->query('SET CHARSET UTF8');
 
+        $this->AUTO_CREATE();
+    }
+
+    private function AUTO_CREATE (): void
+    {
+        $this->DB_link->query('SET CHARSET UTF8');
 //        $this->CREATE_TABLE('config',
 //            "`value` VARCHAR(255) NOT NULL,
 //            `description` VARCHAR(255) NULL DEFAULT NULL,
@@ -121,6 +134,7 @@ class SQL
             `language_code` VARCHAR(255) NULL DEFAULT NULL,
             `birthday` DATE NULL DEFAULT NULL,
             `sex` VARCHAR(255) NULL DEFAULT NULL,
+            `address` VARCHAR(255) NULL DEFAULT NULL,
             `user_role` VARCHAR(255) NOT NULL DEFAULT 'viewer'", "`id`");
 
         $this->CREATE_TABLE('product',
@@ -137,13 +151,11 @@ class SQL
             `price_new` INT NULL DEFAULT NULL,
             `image_id` INT NULL DEFAULT NULL,
             `creator` VARCHAR(255) NOT NULL", "`vendor_code`");
-//
+
 //        $this->CREATE_TABLE('category',
 //            "`id` INT NOT NULL,
 //            `count_product` INT NULL DEFAULT NULL,
 //            `description` VARCHAR(255) NOT NULL", "`id`");
-
-
     }
 
     private function SHOW_TABLES (): bool|array|null
