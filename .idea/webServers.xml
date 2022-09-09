@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="0a87a56a-d78d-4211-9384-44d3a23ecc44" name="smakolyky.org" url="https://smakolyky.org">
+        <fileTransfer rootFolder="/smakolyky.org/www" accessType="FTPS" host="mn469049.ftp.tools" port="21">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
