@@ -61,22 +61,52 @@ class API
 class Keyboard
 {
     private array $keyboard;
-    private string $type;
+    private string $keyboard_type;
 
-    public function __construct ($type_keyboard, $one_time_keyboard)
+    public function __construct ($keyboard_type, $one_time_keyboard)
     {
-        $this->type = $type_keyboard;
-        $this->keyboard = array($this->type => array(), 'resize_keyboard' => true, 'one_time_keyboard' => $one_time_keyboard);
+        $this->keyboard_type = $keyboard_type;
+        $this->keyboard = array($this->keyboard_type => array(), 'resize_keyboard' => true, 'one_time_keyboard' => $one_time_keyboard);
     }
 
-    public function add ($text, $action, $type, $row, $coll): void
+    public function add ($keyboard_type, $text, $action, $type, $row, $coll): void
     {
-        $button =
-            ["text" => $text,
-                "callback_data" => "action:$action|type:$type"];
+        /* KEYBOARD TYPE
+         * request_contact
+         * request_location
+         * callback_data
+         * none
+         * */
 
-        $this->keyboard[$this->type][$row][$coll] = $button;
+            switch ($keyboard_type) {
+                case 'request_contact':
+                case 'request_location':
+                    $button =
+                        ["text" => $text,
+                            $keyboard_type => $type];
+
+                    $this->keyboard[$this->keyboard_type][$row][$coll] = $button;
+                    break;
+
+                case 'callback_data':
+                    $button =
+                        ["text" => $text,
+                            $keyboard_type => "action:$action|type:$type"];
+
+                    $this->keyboard[$this->keyboard_type][$row][$coll] = $button;
+                    break;
+
+                default:
+                    $button =
+                        ["text" => $text];
+
+                    $this->keyboard[$this->keyboard_type][$row][$coll] = $button;
+                    break;
+            }
     }
+
+
+
 
     public function get (): bool|string
     {
