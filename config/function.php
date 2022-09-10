@@ -55,6 +55,16 @@ class API
         $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
+    public function sendLocation ($chat_id, $latitude, $longitude): void
+    {
+        $request_params = array(
+            'chat_id' => $chat_id,
+            'latitude' => $latitude,
+            'longitude' => $longitude
+        );
+        $this->curl(method: __FUNCTION__, request_params: $request_params);
+    }
+
 }
 
 
