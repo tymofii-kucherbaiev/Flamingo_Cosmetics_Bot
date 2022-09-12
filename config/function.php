@@ -57,8 +57,19 @@ class API
 
     public function sendLocation ($chat_id, $latitude, $longitude): void
     {
+        $this->sendMessage("Покупатель: Гитлер Адольф Константинович
+Телефон: +38-050-000-00-00
+
+Заказ: №4213
+Содержимое: 
+1. FFLEUR TK-12 №04 Пудра компактная «2в1″ - 2 шт - 200 грн (400 грн)
+2. FFLEUR TK-12 №02 Пудра компактная «2в1″ - 1 шт - 200 грн (200 грн)
+
+Сумма: 600 грн
+Адресс доставки: ", $chat_id, NULL);
         $request_params = array(
             'chat_id' => $chat_id,
+            'protect_content' => false,
             'latitude' => $latitude,
             'longitude' => $longitude
         );
@@ -170,7 +181,7 @@ class SQL
             `username` VARCHAR(255) NULL DEFAULT NULL,
             `first_name` VARCHAR(255) NOT NULL,
             `last_name` VARCHAR(255) NULL DEFAULT NULL,
-            `phone_number` INT NULL DEFAULT NULL,
+            `phone_number` BIGINT NULL DEFAULT NULL,
             `language_code` VARCHAR(255) NULL DEFAULT NULL,
             `birthday` DATE NULL DEFAULT NULL,
             `sex` VARCHAR(255) NULL DEFAULT NULL,

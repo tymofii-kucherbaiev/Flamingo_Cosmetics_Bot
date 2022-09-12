@@ -36,6 +36,14 @@ if (file_get_contents('php://input')) {
     } else {
         require './query/private.php';
     }
-    $SQL->connect_close();
+
     file_put_contents('json.json', $input = file_get_contents('php://input'));
+    if (array_key_exists('contact', $data)) {
+        $SQL->UPDATE('users',
+            "phone_number = '" . substr($data['contact']['phone_number'], 1) . "'",
+            "id = $user_id");
+
+
+    }
+    $SQL->connect_close();
 }
