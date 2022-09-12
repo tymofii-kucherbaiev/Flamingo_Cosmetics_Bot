@@ -15,8 +15,15 @@ if (file_get_contents('php://input')) {
     $SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname);
     $API = new API('5322180222:AAHzWzIqD3XEvJcvV28xo-Fd56oo-H8SAiU');
 
-    $input = json_decode(file_get_contents('php://input'), true);
 
+
+    $text = json_decode(file_get_contents('./config/text.json'), true)['content'];
+
+    $text_keyboard = $text['keyboard'];
+    $text_message = $text['message'];
+
+
+    $input = json_decode(file_get_contents('php://input'), true);
     if (array_key_exists('callback_query', $input)) {
         $data = $input['callback_query'];
     } else {
@@ -37,7 +44,6 @@ if (file_get_contents('php://input')) {
         require './query/private.php';
     }
 
-    file_put_contents('json.json', $input = file_get_contents('php://input'));
     if (array_key_exists('contact', $data)) {
         $SQL->UPDATE('users',
             "phone_number = '" . substr($data['contact']['phone_number'], 1) . "'",
@@ -46,4 +52,5 @@ if (file_get_contents('php://input')) {
 
     }
     $SQL->connect_close();
+    file_put_contents('json.json', $input = file_get_contents('php://input'));
 }

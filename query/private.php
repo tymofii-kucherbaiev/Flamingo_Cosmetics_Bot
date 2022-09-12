@@ -7,6 +7,8 @@
  * @var $user_username
  * @var $user_first_name
  * @var $user_last_name
+ * @var $text_keyboard
+ * @var $text_message
  */
 
 switch ($data['text']) {
@@ -18,19 +20,22 @@ switch ($data['text']) {
                 "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}'");
 
         $oKeyboard = new Keyboard('keyboard', false);
-        $oKeyboard->add(NULL, 'Каталог', 'a', 'a', 0, 0);
+        $oKeyboard->add(NULL, $text_keyboard['catalog'], 'a', 'a', 0, 0);
 
 
         if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND phone_number IS NOT NULL")->num_rows)
-            $oKeyboard->add(NULL, 'Кабинет', 'a', 'a', 0, 1);
+            $oKeyboard->add(NULL, $text_keyboard['profile'], 'a', 'a', 1, 0);
         else
-            $oKeyboard->add(NULL, 'Войти', 'a', 'a', 0, 1);
+            $oKeyboard->add(NULL, $text_keyboard['login'], 'a', 'a', 1, 0);
+        if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND role = 'administrator'")->num_rows) {
+            $oKeyboard->add(NULL, $text_keyboard['admin'], 'a', 'a', 1, 1);
+            $oKeyboard->add(NULL, $text_keyboard['help'], 'a', 'a', 1, 2);
+        } else {
+            $oKeyboard->add(NULL, $text_keyboard['help'], 'a', 'a', 1, 1);
+        }
 
-
-        $oKeyboard->add(NULL, 'Заказы', 'a', 'a', 1, 0);
-        $oKeyboard->add(NULL, 'Помощь', 'a', 'a', 1, 1);
         $keyboard = $oKeyboard->get();
-        $API->sendMessage('Hello', $user_id, $keyboard);
+        $API->sendMessage($text_message['welcome'], $user_id, $keyboard);
         break;
 
     case '/catalog':

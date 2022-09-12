@@ -186,7 +186,7 @@ class SQL
             `birthday` DATE NULL DEFAULT NULL,
             `sex` VARCHAR(255) NULL DEFAULT NULL,
             `address` VARCHAR(255) NULL DEFAULT NULL,
-            `user_role` VARCHAR(255) NOT NULL DEFAULT 'viewer'", "`id`");
+            `role` VARCHAR(255) NOT NULL DEFAULT 'viewer'", "`id`");
 
         $this->CREATE_TABLE('product',
             "`vendor_code` BIGINT NOT NULL,
