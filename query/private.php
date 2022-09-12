@@ -20,18 +20,17 @@ switch ($data['text']) {
                 "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}'");
 
         $oKeyboard = new Keyboard('keyboard', false);
-        $oKeyboard->add(NULL, $text_keyboard['catalog'], 'a', 'a', 0, 0);
-
+        $oKeyboard->add(NULL, $text_keyboard['catalog'], NULL, NULL, 0, 0);
 
         if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND phone_number IS NOT NULL")->num_rows)
-            $oKeyboard->add(NULL, $text_keyboard['profile'], 'a', 'a', 1, 0);
+            $oKeyboard->add(NULL, $text_keyboard['profile'], NULL, NULL, 1, 0);
         else
-            $oKeyboard->add(NULL, $text_keyboard['login'], 'a', 'a', 1, 0);
+            $oKeyboard->add('request_contact', $text_keyboard['login'], NULL, TRUE, 1, 0);
         if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND role = 'administrator'")->num_rows) {
-            $oKeyboard->add(NULL, $text_keyboard['admin'], 'a', 'a', 1, 1);
-            $oKeyboard->add(NULL, $text_keyboard['help'], 'a', 'a', 1, 2);
+            $oKeyboard->add(NULL, $text_keyboard['admin'], NULL, NULL, 1, 1);
+            $oKeyboard->add(NULL, $text_keyboard['help'], NULL, NULL, 1, 2);
         } else {
-            $oKeyboard->add(NULL, $text_keyboard['help'], 'a', 'a', 1, 1);
+            $oKeyboard->add(NULL, $text_keyboard['help'], NULL, NULL, 1, 1);
         }
 
         $keyboard = $oKeyboard->get();

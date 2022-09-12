@@ -6,13 +6,15 @@
     "keyboard": {
       "catalog": "Каталог",
       "login": "Войти",
-      "profile": "Май аккаунт",
+      "profile": "Мой аккаунт",
       "help": "Помощь",
       "admin": "Управление",
       "button": "3"
     },
     "message": {
-      "welcome": "Добро пожаловать!"
+      "welcome": "Добро пожаловать!",
+      "welcome_authorize_user": "Добро пожаловать: ",
+      "welcome_authorize_caption": "теперь ты можешь пользоваться всеми возможностями нашего магазина."
     }
   }
 }
