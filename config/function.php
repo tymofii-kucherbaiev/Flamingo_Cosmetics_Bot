@@ -84,6 +84,7 @@ class Keyboard
     private array $keyboard;
     private string $keyboard_type;
 
+
     public function __construct ($keyboard_type, $one_time_keyboard)
     {
         $this->keyboard_type = $keyboard_type;
@@ -92,13 +93,6 @@ class Keyboard
 
     public function add ($keyboard_type, $text, $action, $type, $row, $coll): void
     {
-        /* KEYBOARD TYPE
-         * request_contact
-         * request_location
-         * callback_data
-         * none
-         * */
-
             switch ($keyboard_type) {
                 case 'request_contact':
                 case 'request_location':
@@ -126,12 +120,56 @@ class Keyboard
             }
     }
 
-
-
-
     public function get (): bool|string
     {
         return json_encode($this->keyboard);
+    }
+
+    public function AUTO_CREATE ($AUTO, $TEXT_KEYBOARD, $USER_ID, $SQL): bool|string|null
+    {
+        $result = NULL;
+        switch ($AUTO) {
+            case 'main_menu';
+            $result = $this->main_menu($TEXT_KEYBOARD, $USER_ID, $SQL);
+            break;
+        }
+
+        return $result;
+    }
+
+    private function main_menu ($TEXT_KEYBOARD, $USER_ID, $SQL): bool|string
+    {
+        $this->add(NULL, $TEXT_KEYBOARD['catalog'], NULL, NULL, 0, 0);
+
+        $i = 0; $col = 0; $row = 1;
+
+        if ($SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND cart_product IS NOT NULL")->num_rows) {
+            $i++;
+            $this->add(NULL, $TEXT_KEYBOARD['cart'], NULL, NULL, $row, $col);
+            $col++;
+        }
+
+        if ($SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND role = 'administrator'")->num_rows) {
+            $i++;
+            $this->add(NULL, $TEXT_KEYBOARD['admin'], NULL, NULL, $row, $col);
+            $col++;
+        }
+
+        if ($SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND favorite IS NOT NULL")->num_rows) {
+            $i++;
+            $this->add(NULL, $TEXT_KEYBOARD['favorite'], NULL, NULL, $row, $col);
+            $col++;
+        }
+
+        if ($i != 0) $row++;
+
+        if ($SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND phone_number IS NOT NULL")->num_rows)
+           $this->add(NULL, $TEXT_KEYBOARD['profile'], NULL, NULL, $row, 0);
+        else
+            $this->add('request_contact', $TEXT_KEYBOARD['login'], NULL, true, $row, 0);
+
+        $this->add(NULL, $TEXT_KEYBOARD['help'], NULL, NULL, $row, 1);
+        return $this->get();
     }
 }
 
