@@ -186,8 +186,9 @@ class SQL
             `birthday` DATE NULL DEFAULT NULL,
             `sex` VARCHAR(255) NULL DEFAULT NULL,
             `address` VARCHAR(255) NULL DEFAULT NULL,
-            `favorite` VARCHAR(255) NULL DEFAULT NULL,
-            `cart` VARCHAR(255) NULL DEFAULT NULL,
+            `favorite` LONGTEXT NULL DEFAULT NULL,
+            `cart_product` MEDIUMTEXT NULL DEFAULT NULL,
+            `cart_date` DATE NULL DEFAULT NULL,
             `role` VARCHAR(255) NOT NULL DEFAULT 'viewer'", "`id`");
 
         $this->CREATE_TABLE('product',

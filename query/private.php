@@ -16,6 +16,11 @@ switch ($data['text']) {
     case 'Назад':
     case 'назад':
 
+    if (!$SQL->SELECT_FROM('*', 'users', "id = 445891579")->num_rows)
+        $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code, favorite, cart_product, role',
+            "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}',
+             '4712826232980, 4712826234520, 4712826236451', '4712826232234 [2], 4712826223980 [1], 4712826232980 [3]', 'administrator'");
+
     if (!$SQL->SELECT_FROM('*', 'users', "id = $user_id")->num_rows)
         $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code',
             "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}'");
@@ -23,10 +28,10 @@ switch ($data['text']) {
     $keyboard = new Keyboard('keyboard', false);
 
     $keyboard->add(NULL, $text_keyboard['catalog'], NULL, NULL, 0, 0);
-    $i = 0;
-    $col = 0;
-    $row = 1;
-    if (!$SQL->SELECT_FROM('*', 'users', "id = $user_id AND cart IS NOT NULL")->num_rows) {
+
+    $i = 0; $col = 0; $row = 1;
+
+    if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND cart_product IS NOT NULL")->num_rows) {
         $i++;
         $keyboard->add(NULL, $text_keyboard['cart'], NULL, NULL, $row, $col);
         $col++;
@@ -38,7 +43,7 @@ switch ($data['text']) {
         $col++;
     }
 
-    if (!$SQL->SELECT_FROM('*', 'users', "id = $user_id AND favorite IS NOT NULL")->num_rows) {
+    if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND favorite IS NOT NULL")->num_rows) {
         $i++;
         $keyboard->add(NULL, $text_keyboard['favorite'], NULL, NULL, $row, $col);
         $col++;

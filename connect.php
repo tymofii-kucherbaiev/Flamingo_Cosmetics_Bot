@@ -65,20 +65,6 @@ if (file_get_contents('php://input')) {
             $API->sendMessage($user_first_name . ", " . $text_message['welcome_authorize_caption'], $user_id, $keyboard);
         }
     }
-    $oKeyboard = new Keyboard('keyboard', false);
-//    $oKeyboard->add(NULL, $text_keyboard['catalog'], NULL, NULL, 0, 0);
-
-    $oKeyboard->add(NULL, $text_keyboard['login'], NULL, NULL, 0, 0);
-
-//    if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND role = 'administrator'")->num_rows) {
-//        $oKeyboard->add(NULL, $text_keyboard['admin'], NULL, NULL, 1, 1);
-//        $oKeyboard->add(NULL, $text_keyboard['help'], NULL, NULL, 1, 2);
-//    } else {
-        $oKeyboard->add(NULL, $text_keyboard['help'], NULL, NULL, 0, 1);
-//    }
-
-    $keyboard = $oKeyboard->get();
-//    $API->sendMessage($user_first_name . ", " . $text_message['welcome_authorize_caption'], $user_id, $keyboard);
 
     $SQL->connect_close();
     file_put_contents('json.json', $input = file_get_contents('php://input'));
