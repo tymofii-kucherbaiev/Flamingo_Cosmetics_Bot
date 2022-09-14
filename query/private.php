@@ -23,30 +23,35 @@ switch ($data['text']) {
     $keyboard = new Keyboard('keyboard', false);
 
     $keyboard->add(NULL, $text_keyboard['catalog'], NULL, NULL, 0, 0);
-
+    $i = 0;
     $col = 0;
-
+    $row = 1;
     if (!$SQL->SELECT_FROM('*', 'users', "id = $user_id AND cart IS NOT NULL")->num_rows) {
-        $keyboard->add(NULL, $text_keyboard['cart'], NULL, NULL, 1, $col);
+        $i++;
+        $keyboard->add(NULL, $text_keyboard['cart'], NULL, NULL, $row, $col);
         $col++;
     }
 
     if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND role = 'administrator'")->num_rows) {
-        $keyboard->add(NULL, $text_keyboard['admin'], NULL, NULL, 1, $col);
+        $i++;
+        $keyboard->add(NULL, $text_keyboard['admin'], NULL, NULL, $row, $col);
         $col++;
     }
 
     if (!$SQL->SELECT_FROM('*', 'users', "id = $user_id AND favorite IS NOT NULL")->num_rows) {
-        $keyboard->add(NULL, $text_keyboard['favorite'], NULL, NULL, 1, $col);
+        $i++;
+        $keyboard->add(NULL, $text_keyboard['favorite'], NULL, NULL, $row, $col);
         $col++;
     }
 
-    if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND phone_number IS NOT NULL")->num_rows)
-        $keyboard->add(NULL, $text_keyboard['profile'], NULL, NULL, 2, 0);
-    else
-        $keyboard->add('request_contact', $text_keyboard['login'], NULL, true, 2, 0);
+    if ($i != 0) $row++;
 
-    $keyboard->add(NULL, $text_keyboard['help'], NULL, NULL, 2, 1);
+    if ($SQL->SELECT_FROM('*', 'users', "id = $user_id AND phone_number IS NOT NULL")->num_rows)
+        $keyboard->add(NULL, $text_keyboard['profile'], NULL, NULL, $row, 0);
+    else
+        $keyboard->add('request_contact', $text_keyboard['login'], NULL, true, $row, 0);
+
+    $keyboard->add(NULL, $text_keyboard['help'], NULL, NULL, $row, 1);
 
     $API->sendMessage($text_message['welcome'], $user_id, $keyboard->get());
     break;
