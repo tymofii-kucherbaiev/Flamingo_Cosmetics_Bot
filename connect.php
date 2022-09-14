@@ -78,7 +78,7 @@ if (file_get_contents('php://input')) {
 //    }
 
     $keyboard = $oKeyboard->get();
-    $API->sendMessage($user_first_name . ", " . $text_message['welcome_authorize_caption'], $user_id, $keyboard);
+//    $API->sendMessage($user_first_name . ", " . $text_message['welcome_authorize_caption'], $user_id, $keyboard);
 
     $SQL->connect_close();
     file_put_contents('json.json', $input = file_get_contents('php://input'));
