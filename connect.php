@@ -15,13 +15,10 @@ if (file_get_contents('php://input')) {
     $SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname);
     $API = new API('5322180222:AAHzWzIqD3XEvJcvV28xo-Fd56oo-H8SAiU');
 
-
-
     $text = json_decode(file_get_contents('./config/text.json'), true)['content'];
 
     $text_keyboard = $text['keyboard'];
     $text_message = $text['message'];
-
 
     $input = json_decode(file_get_contents('php://input'), true);
     if (array_key_exists('callback_query', $input)) {
@@ -35,6 +32,7 @@ if (file_get_contents('php://input')) {
     $user_first_name = $data['from']['first_name'];
     $user_last_name = $data['from']['last_name'];
     $user_username = $data['from']['username'];
+    $message_id = $data['message_id'];
 
     $API->answerCallbackQuery(NULL, NULL, $data['id']);
 
@@ -57,12 +55,6 @@ if (file_get_contents('php://input')) {
         }
     }
 
-    $keyboard = new Keyboard('keyboard', false);
-    $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $user_id, $SQL);
-
-//    $API->sendMessage($user_first_name . ", " . $text_message['welcome_authorize_caption'], $user_id, $keyboard);
-
-
     $SQL->connect_close();
-    file_put_contents('json.json', $input = file_get_contents('php://input'));
+    file_put_contents('json.json', file_get_contents('php://input'));
 }

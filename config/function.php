@@ -19,16 +19,7 @@ class API
         return $result;
     }
 
-    public function setWebhook ($directory): bool|string
-    {
-        $request_params = array (
-            'url' => $directory
-        );
-        return $this->curl(method: __FUNCTION__, request_params: $request_params);
-
-    }
-
-    public function sendMessage ($text, $chat_id, $reply_markup): bool|array|string
+    public function sendMessage ($text, $chat_id, $reply_markup)
     {
         if ($reply_markup == 'close')
             $request_params = array (
@@ -42,7 +33,7 @@ class API
                 'text' => $text,
                 'reply_markup' => $reply_markup
             );
-        return $this->curl(method: __FUNCTION__, request_params: $request_params);
+         return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
     public function answerCallbackQuery ($text, $show_alert, $callback_query_id): void
@@ -51,6 +42,15 @@ class API
             'text' => $text,
             'show_alert' => $show_alert,
             'callback_query_id' => $callback_query_id
+        );
+        $this->curl(method: __FUNCTION__, request_params: $request_params);
+    }
+
+    public function deleteMessage ($chat_id, $message_id): void
+    {
+        $request_params = array(
+            'chat_id' => $chat_id,
+            'message_id' => $message_id
         );
         $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
@@ -129,9 +129,13 @@ class Keyboard
     {
         $result = NULL;
         switch ($AUTO) {
-            case 'main_menu';
-            $result = $this->main_menu($TEXT_KEYBOARD, $USER_ID, $SQL);
-            break;
+            case 'main_menu':
+                $result = $this->main_menu($TEXT_KEYBOARD, $USER_ID, $SQL);
+                break;
+
+            case '':
+
+                break;
         }
 
         return $result;
