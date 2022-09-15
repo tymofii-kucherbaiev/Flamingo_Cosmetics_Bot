@@ -17,8 +17,8 @@
       "profile_name": "Изменить имя",
       "profile_sex_unknown": "\uD83D\uDFE1 Указать пол \uD83D\uDFE1",
       "profile_sex": "Изменить пол",
-      "profile_age_unknown": "\uD83D\uDFE1 Указать дату рождения \uD83D\uDFE1",
-      "profile_age": "Изменить дату рождения"
+      "profile_birthday_unknown": "\uD83D\uDFE1 Указать дату рождения \uD83D\uDFE1",
+      "profile_birthday": "Изменить дату рождения"
     },
     "message": {
       "welcome": "Добро пожаловать!",

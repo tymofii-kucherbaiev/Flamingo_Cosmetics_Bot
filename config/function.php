@@ -138,7 +138,7 @@ class Keyboard
                 break;
 
             case 'user_account':
-                $result = $this->user_account($TEXT_KEYBOARD);
+                $result = $this->user_account($TEXT_KEYBOARD, $USER_ID, $SQL);
                 break;
         }
 
@@ -181,12 +181,27 @@ class Keyboard
         return $this->get();
     }
 
-    private function user_account ($TEXT_KEYBOARD): bool|string
+    private function user_account ($TEXT_KEYBOARD, $USER_ID, $SQL): bool|string
     {
+        $user_info = $SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND cart_product IS NOT NULL")->fetch_assoc();
+
         $this->add(NULL, $TEXT_KEYBOARD['profile_history'], NULL, NULL, 0, 0);
-        $this->add(NULL, $TEXT_KEYBOARD['profile_name_unknown'], NULL, NULL, 1, 0);
-        $this->add(NULL, $TEXT_KEYBOARD['profile_sex_unknown'], NULL, NULL, 1, 1);
-        $this->add(NULL, $TEXT_KEYBOARD['profile_age_unknown'], NULL, NULL, 1, 2);
+
+        if ($user_info['profile_name'] == NULL)
+            $this->add(NULL, $TEXT_KEYBOARD['profile_name_unknown'], NULL, NULL, 1, 0);
+        else
+            $this->add(NULL, $TEXT_KEYBOARD['profile_name'], NULL, NULL, 1, 0);
+
+        if ($user_info['sex'] == NULL)
+            $this->add(NULL, $TEXT_KEYBOARD['profile_sex_unknown'], NULL, NULL, 1, 1);
+        else
+            $this->add(NULL, $TEXT_KEYBOARD['profile_sex'], NULL, NULL, 1, 1);
+
+        if ($user_info['birthday'] == NULL)
+            $this->add(NULL, $TEXT_KEYBOARD['profile_birthday_unknown'], NULL, NULL, 1, 2);
+        else
+            $this->add(NULL, $TEXT_KEYBOARD['profile_birthday'], NULL, NULL, 1, 2);
+
         $this->add(NULL, $TEXT_KEYBOARD['main_back'], NULL, NULL, 2, 0);
 
         return $this->get();
@@ -331,7 +346,7 @@ class SQL
         return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE");
     }
 
-    public function UPDATE ($TABLE_NAME, $SET, $WHERE): mysqli_result|bool
+    public function UPDATE ($TABLE_NAME, $SET, $WHERE): bool|mysqli_result
     {
         $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
         return $this->DB_link->query("UPDATE $TABLE_NAME SET $SET WHERE $WHERE");
