@@ -46,35 +46,35 @@ class API
         $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-    public function deleteMessage ($chat_id, $message_id): void
-    {
-        $request_params = array(
-            'chat_id' => $chat_id,
-            'message_id' => $message_id
-        );
-        $this->curl(method: __FUNCTION__, request_params: $request_params);
-    }
+//    public function deleteMessage ($chat_id, $message_id): void
+//    {
+//        $request_params = array(
+//            'chat_id' => $chat_id,
+//            'message_id' => $message_id
+//        );
+//        $this->curl(method: __FUNCTION__, request_params: $request_params);
+//    }
 
-    public function sendLocation ($chat_id, $latitude, $longitude): void
-    {
-        $this->sendMessage("Покупатель: Гитлер Адольф Константинович
-Телефон: +38-050-000-00-00
-
-Заказ: №4213
-Содержимое: 
-1. FFLEUR TK-12 №04 Пудра компактная «2в1″ - 2 шт - 200 грн (400 грн)
-2. FFLEUR TK-12 №02 Пудра компактная «2в1″ - 1 шт - 200 грн (200 грн)
-
-Сумма: 600 грн
-Адресс доставки: ", $chat_id, NULL);
-        $request_params = array(
-            'chat_id' => $chat_id,
-            'protect_content' => false,
-            'latitude' => $latitude,
-            'longitude' => $longitude
-        );
-        $this->curl(method: __FUNCTION__, request_params: $request_params);
-    }
+//    public function sendLocation ($chat_id, $latitude, $longitude): void
+//    {
+//        $this->sendMessage("Покупатель: Гитлер Адольф Константинович
+//Телефон: +38-050-000-00-00
+//
+//Заказ: №4213
+//Содержимое:
+//1. FFLEUR TK-12 №04 Пудра компактная «2в1″ - 2 шт - 200 грн (400 грн)
+//2. FFLEUR TK-12 №02 Пудра компактная «2в1″ - 1 шт - 200 грн (200 грн)
+//
+//Сумма: 600 грн
+//Адресс доставки: ", $chat_id, NULL);
+//        $request_params = array(
+//            'chat_id' => $chat_id,
+//            'protect_content' => false,
+//            'latitude' => $latitude,
+//            'longitude' => $longitude
+//        );
+//        $this->curl(method: __FUNCTION__, request_params: $request_params);
+//    }
 
 }
 
@@ -331,7 +331,7 @@ class SQL
         return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE");
     }
 
-    public function UPDATE ($TABLE_NAME, $SET, $WHERE)
+    public function UPDATE ($TABLE_NAME, $SET, $WHERE): mysqli_result|bool
     {
         $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
         return $this->DB_link->query("UPDATE $TABLE_NAME SET $SET WHERE $WHERE");
