@@ -4,13 +4,21 @@
   "last_date_update": "12.09.2022",
   "content": {
     "keyboard": {
-      "catalog": "Каталог",
-      "login": "Регицстрация / Вход",
-      "profile": "Мой аккаунт",
-      "help": "Помощь",
-      "admin": "Управление",
-      "favorite": "Избранное",
-      "cart": "Корзина"
+      "main_back": "Главное меню",
+      "main_catalog": "Каталог",
+      "main_login": "Регицстрация / Вход",
+      "main_help": "Помощь",
+      "main_admin": "Управление",
+      "main_favorite": "Избранное",
+      "main_cart": "Корзина",
+      "main_profile": "Мой аккаунт",
+      "profile_history": "История заказов",
+      "profile_name_unknown": "\uD83D\uDFE1 Указать имя \uD83D\uDFE1",
+      "profile_name": "Изменить имя",
+      "profile_sex_unknown": "\uD83D\uDFE1 Указать пол \uD83D\uDFE1",
+      "profile_sex": "Изменить пол",
+      "profile_age_unknown": "\uD83D\uDFE1 Указать дату рождения \uD83D\uDFE1",
+      "profile_age": "Изменить дату рождения"
     },
     "message": {
       "welcome": "Добро пожаловать!",

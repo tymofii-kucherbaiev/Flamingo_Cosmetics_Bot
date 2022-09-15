@@ -46,7 +46,7 @@ if (file_get_contents('php://input')) {
         $SQL->UPDATE('users',
             "phone_number = '" . substr($data['contact']['phone_number'], 1) . "'",
             "id = $user_id");
-        if ($data['reply_to_message']['text'] == $text_message['welcome']) {
+        if ($data['reply_to_message']['text'] == $text_message['main_welcome']) {
 
             $keyboard = new Keyboard('keyboard', false);
             $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $user_id, $SQL);

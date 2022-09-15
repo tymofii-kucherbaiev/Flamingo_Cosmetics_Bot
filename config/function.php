@@ -19,7 +19,7 @@ class API
         return $result;
     }
 
-    public function sendMessage ($text, $chat_id, $reply_markup)
+    public function sendMessage ($text, $chat_id, $reply_markup): bool|array|string
     {
         if ($reply_markup == 'close')
             $request_params = array (
@@ -133,8 +133,12 @@ class Keyboard
                 $result = $this->main_menu($TEXT_KEYBOARD, $USER_ID, $SQL);
                 break;
 
-            case '':
+            case 'calendar':
+                $result = $this->calendar();
+                break;
 
+            case 'user_account':
+                $result = $this->user_account($TEXT_KEYBOARD);
                 break;
         }
 
@@ -143,36 +147,80 @@ class Keyboard
 
     private function main_menu ($TEXT_KEYBOARD, $USER_ID, $SQL): bool|string
     {
-        $this->add(NULL, $TEXT_KEYBOARD['catalog'], NULL, NULL, 0, 0);
+        $this->add(NULL, $TEXT_KEYBOARD['main_catalog'], NULL, NULL, 0, 0);
 
         $i = 0; $col = 0; $row = 1;
+        $user_info = $SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND cart_product IS NOT NULL")->fetch_assoc();
 
-        if ($SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND cart_product IS NOT NULL")->num_rows) {
+
+        if ($user_info['cart_product'] != NULL) {
             $i++;
-            $this->add(NULL, $TEXT_KEYBOARD['cart'], NULL, NULL, $row, $col);
+            $this->add(NULL, $TEXT_KEYBOARD['main_cart'], NULL, NULL, $row, $col);
             $col++;
         }
 
-        if ($SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND role = 'administrator'")->num_rows) {
+        if ($user_info['role'] == 'administrator') {
             $i++;
-            $this->add(NULL, $TEXT_KEYBOARD['admin'], NULL, NULL, $row, $col);
+            $this->add(NULL, $TEXT_KEYBOARD['main_admin'], NULL, NULL, $row, $col);
             $col++;
         }
 
-        if ($SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND favorite IS NOT NULL")->num_rows) {
+        if ($user_info['favorite'] != NULL) {
             $i++;
-            $this->add(NULL, $TEXT_KEYBOARD['favorite'], NULL, NULL, $row, $col);
-            $col++;
+            $this->add(NULL, $TEXT_KEYBOARD['main_favorite'], NULL, NULL, $row, $col);
         }
 
         if ($i != 0) $row++;
 
-        if ($SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND phone_number IS NOT NULL")->num_rows)
-           $this->add(NULL, $TEXT_KEYBOARD['profile'], NULL, NULL, $row, 0);
+        if ($user_info['phone_number'] != NULL)
+           $this->add(NULL, $TEXT_KEYBOARD['main_profile'], NULL, NULL, $row, 0);
         else
-            $this->add('request_contact', $TEXT_KEYBOARD['login'], NULL, true, $row, 0);
+            $this->add('request_contact', $TEXT_KEYBOARD['main_login'], NULL, true, $row, 0);
 
-        $this->add(NULL, $TEXT_KEYBOARD['help'], NULL, NULL, $row, 1);
+        $this->add(NULL, $TEXT_KEYBOARD['main_help'], NULL, NULL, $row, 1);
+        return $this->get();
+    }
+
+    private function user_account ($TEXT_KEYBOARD): bool|string
+    {
+        $this->add(NULL, $TEXT_KEYBOARD['profile_history'], NULL, NULL, 0, 0);
+        $this->add(NULL, $TEXT_KEYBOARD['profile_name_unknown'], NULL, NULL, 1, 0);
+        $this->add(NULL, $TEXT_KEYBOARD['profile_sex_unknown'], NULL, NULL, 1, 1);
+        $this->add(NULL, $TEXT_KEYBOARD['profile_age_unknown'], NULL, NULL, 1, 2);
+        $this->add(NULL, $TEXT_KEYBOARD['main_back'], NULL, NULL, 2, 0);
+
+        return $this->get();
+    }
+
+    private function calendar (): bool|string
+    {
+        $v = 0;
+        for ($i = 1; $i <= 7; $i++) {
+            $v++;
+            $this->add('callback_data', $i, NULL, NULL, 0, $i-1);
+        }
+        for ($i = 1; $i <= 7; $i++) {
+            $v++;
+            $this->add('callback_data', $i+7, NULL, NULL, 1, $i-1);
+        }
+        for ($i = 1; $i <= 7; $i++) {
+            $v++;
+            $this->add('callback_data', $i+14, NULL, NULL, 2, $i-1);
+        }
+        for ($i = 1; $i <= 7; $i++) {
+            $v++;
+            $this->add('callback_data', $i+21, NULL, NULL, 3, $i-1);
+        }
+        for ($i = 1; $i <= 7; $i++) {
+            $v++;
+            if ($v <= 31)
+                $this->add('callback_data', $i+28, NULL, NULL, 4, $i-1);
+            else
+                $this->add('callback_data', '-', NULL, NULL, 4, $i-1);
+        }
+//        $i = 0;
+//        $this->add('callback_data', $i, NULL, NULL, 0, 0);
+//        $this->add('callback_data', $i, NULL, NULL, 0, 0);
         return $this->get();
     }
 }
@@ -223,6 +271,7 @@ class SQL
             `username` VARCHAR(255) NULL DEFAULT NULL,
             `first_name` VARCHAR(255) NOT NULL,
             `last_name` VARCHAR(255) NULL DEFAULT NULL,
+            `profile_name` VARCHAR(255) NULL DEFAULT NULL,
             `phone_number` BIGINT NULL DEFAULT NULL,
             `language_code` VARCHAR(255) NULL DEFAULT NULL,
             `birthday` DATE NULL DEFAULT NULL,
