@@ -91,7 +91,7 @@ class Keyboard
         $this->keyboard = array($this->keyboard_type => array(), 'resize_keyboard' => true, 'one_time_keyboard' => $one_time_keyboard);
     }
 
-    public function add ($keyboard_type, $text, $action, $type, $row, $coll): void
+    public function add ($keyboard_type, $text, $action, $type, $row, $col): void
     {
             switch ($keyboard_type) {
                 case 'request_contact':
@@ -100,7 +100,7 @@ class Keyboard
                         ["text" => $text,
                             $keyboard_type => $type];
 
-                    $this->keyboard[$this->keyboard_type][$row][$coll] = $button;
+                    $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                     break;
 
                 case 'callback_data':
@@ -108,14 +108,14 @@ class Keyboard
                         ["text" => $text,
                             $keyboard_type => "action:$action|type:$type"];
 
-                    $this->keyboard[$this->keyboard_type][$row][$coll] = $button;
+                    $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                     break;
 
                 default:
                     $button =
                         ["text" => $text];
 
-                    $this->keyboard[$this->keyboard_type][$row][$coll] = $button;
+                    $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                     break;
             }
     }
@@ -139,6 +139,10 @@ class Keyboard
 
             case 'user_account':
                 $result = $this->user_account($TEXT_KEYBOARD, $SQL_RESULT);
+                break;
+
+            case 'catalog':
+                $result = $this->catalog($SQL_RESULT);
                 break;
         }
 
@@ -199,6 +203,35 @@ class Keyboard
             $this->add(NULL, $TEXT_KEYBOARD['profile_birthday'], NULL, NULL, 1, 2);
 
         $this->add(NULL, $TEXT_KEYBOARD['main_back'], NULL, NULL, 2, 0);
+
+        return $this->get();
+    }
+
+    private function catalog ($SQL_RESULT): bool|string
+    {
+        $sql_result = $SQL_RESULT->SELECT_FROM('*', 'category', NULL);
+        $col = 0; $row = 0; $count = 0;
+        foreach ($sql_result as $sql_value) {
+            if (iconv_strlen($sql_value['description']) <= 16) {
+                $count++;
+                $this->add('callback_data',
+                    $sql_value['description'] . ' [' . $sql_value['count_product'] . ']',
+                    'category', $sql_value['id'], $row, $col);
+                $col++;
+            } else {
+                if ($count >= 1) $row++;
+                $col = 0;
+                $this->add('callback_data',
+                    $sql_value['description'] . ' [' . $sql_value['count_product'] . ']',
+                    'category', $sql_value['id'], $row, $col);
+                $row++;
+            }
+            if ($col == 2) {
+                $count = 0;
+                $col = 0;
+                $row++;
+            }
+        }
 
         return $this->get();
     }
@@ -340,7 +373,10 @@ class SQL
     public function SELECT_FROM ($SELECT, $TABLE_NAME, $WHERE): bool|mysqli_result
     {
         $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
-        return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE");
+        if ($WHERE)
+            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE");
+        else
+            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME`");
     }
 
     public function UPDATE ($TABLE_NAME, $SET, $WHERE): bool|mysqli_result

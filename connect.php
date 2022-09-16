@@ -33,16 +33,12 @@ if (file_get_contents('php://input')) {
 
     $API->answerCallbackQuery(NULL, NULL, $data['id']);
 
-    $SQL_RESULT = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
+    $SQL_result = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
 
-    if (!$SQL_RESULT) {
+    if (!$SQL_result) {
             $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code, favorite, cart_product, role',
                 "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}',
                  '4712826232980, 4712826234520, 4712826236451', '4712826232234 [2], 4712826223980 [1], 4712826232980 [3]', 'administrator'");
-
-//        $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code',
-//            "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}'");
-        $SQL_RESULT = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
     }
 
     if (array_key_exists('callback_query', $input)) {
@@ -55,10 +51,10 @@ if (file_get_contents('php://input')) {
         $SQL->UPDATE('users',
             "phone_number = '" . substr($data['contact']['phone_number'], 1) . "'",
             "id = $user_id");
-        $SQL_RESULT = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
+        $SQL_result = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
         if ($data['reply_to_message']['text'] == $text_message['welcome']) {
             $keyboard = new Keyboard('keyboard', false);
-            $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $SQL_RESULT);
+            $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $SQL_result);
 
             $API->sendMessage($user_first_name . ", " . $text_message['welcome_authorize_caption'], $user_id, $keyboard);
         }
