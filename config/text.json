@@ -13,11 +13,11 @@
       "main_cart": "Корзина",
       "main_profile": "Мой аккаунт",
       "profile_history": "История заказов",
-      "profile_name_unknown": "\uD83D\uDFE1 Указать имя \uD83D\uDFE1",
+      "profile_name_unknown": "\uD83D\uDFE1 Имя",
       "profile_name": "Изменить имя",
-      "profile_sex_unknown": "\uD83D\uDFE1 Указать пол \uD83D\uDFE1",
+      "profile_sex_unknown": "\uD83D\uDFE1 Пол",
       "profile_sex": "Изменить пол",
-      "profile_birthday_unknown": "\uD83D\uDFE1 Указать дату рождения \uD83D\uDFE1",
+      "profile_birthday_unknown": "\uD83D\uDFE1 Дата рождения",
       "profile_birthday": "Изменить дату рождения"
     },
     "message": {

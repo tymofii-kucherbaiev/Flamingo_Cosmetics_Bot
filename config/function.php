@@ -209,7 +209,7 @@ class Keyboard
 
     private function catalog ($SQL_RESULT): bool|string
     {
-        $sql_result = $SQL_RESULT->SELECT_FROM('*', 'category', NULL);
+        $sql_result = $SQL_RESULT->SELECT_FROM('*', 'category', NULL, 'count_characters');
         $col = 0; $row = 0; $count = 0;
         foreach ($sql_result as $sql_value) {
             if (iconv_strlen($sql_value['description']) <= 16) {
@@ -340,12 +340,15 @@ class SQL
         $this->CREATE_TABLE('category',
             "`id` INT NOT NULL AUTO_INCREMENT,
             `count_product` INT NULL DEFAULT NULL,
+            `count_characters` INT NULL DEFAULT NULL,
             `description` VARCHAR(255) NOT NULL", "`id`");
 
-//        $this->CREATE_TABLE('brand',
-//            "`id` INT NOT NULL AUTO_INCREMENT,
-//            `count_product` INT NULL DEFAULT NULL,
-//            `description` VARCHAR(255) NOT NULL", "`id`");
+        $this->CREATE_TABLE('brand',
+            "`id` INT NOT NULL AUTO_INCREMENT,
+            `count_product` INT NULL DEFAULT NULL,
+            `count_characters` INT NULL DEFAULT NULL,
+            `country` VARCHAR(255) NOT NULL,
+            `description` VARCHAR(255) NOT NULL", "`id`");
     }
 
     private function SHOW_TABLES (): bool|array|null
@@ -370,11 +373,13 @@ class SQL
 
     }
 
-    public function SELECT_FROM ($SELECT, $TABLE_NAME, $WHERE): bool|mysqli_result
+    public function SELECT_FROM ($SELECT, $TABLE_NAME, $WHERE, $ORDER_BY): bool|mysqli_result
     {
         $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
         if ($WHERE)
             return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE");
+        elseif ($ORDER_BY)
+            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` ORDER BY $ORDER_BY");
         else
             return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME`");
     }

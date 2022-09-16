@@ -33,7 +33,7 @@ if (file_get_contents('php://input')) {
 
     $API->answerCallbackQuery(NULL, NULL, $data['id']);
 
-    $SQL_result = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
+    $SQL_result = $SQL->SELECT_FROM('*', 'users', "id = $user_id", NULL)->fetch_assoc();
 
     if (!$SQL_result) {
             $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code, favorite, cart_product, role',
@@ -51,7 +51,7 @@ if (file_get_contents('php://input')) {
         $SQL->UPDATE('users',
             "phone_number = '" . substr($data['contact']['phone_number'], 1) . "'",
             "id = $user_id");
-        $SQL_result = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
+        $SQL_result = $SQL->SELECT_FROM('*', 'users', "id = $user_id", NULL)->fetch_assoc();
         if ($data['reply_to_message']['text'] == $text_message['welcome']) {
             $keyboard = new Keyboard('keyboard', false);
             $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $SQL_result);
