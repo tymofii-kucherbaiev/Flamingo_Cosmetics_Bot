@@ -125,12 +125,12 @@ class Keyboard
         return json_encode($this->keyboard);
     }
 
-    public function AUTO_CREATE ($AUTO, $TEXT_KEYBOARD, $USER_ID, $SQL): bool|string|null
+    public function AUTO_CREATE ($AUTO, $TEXT_KEYBOARD, $SQL_RESULT): bool|string|null
     {
         $result = NULL;
         switch ($AUTO) {
             case 'main_menu':
-                $result = $this->main_menu($TEXT_KEYBOARD, $USER_ID, $SQL);
+                $result = $this->main_menu($TEXT_KEYBOARD, $SQL_RESULT);
                 break;
 
             case 'calendar':
@@ -138,41 +138,39 @@ class Keyboard
                 break;
 
             case 'user_account':
-                $result = $this->user_account($TEXT_KEYBOARD, $USER_ID, $SQL);
+                $result = $this->user_account($TEXT_KEYBOARD, $SQL_RESULT);
                 break;
         }
 
         return $result;
     }
 
-    private function main_menu ($TEXT_KEYBOARD, $USER_ID, $SQL): bool|string
+    private function main_menu ($TEXT_KEYBOARD, $SQL_RESULT): bool|string
     {
         $this->add(NULL, $TEXT_KEYBOARD['main_catalog'], NULL, NULL, 0, 0);
 
         $i = 0; $col = 0; $row = 1;
-        $user_info = $SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND cart_product IS NOT NULL")->fetch_assoc();
 
-
-        if ($user_info['cart_product'] != NULL) {
+        if ($SQL_RESULT['cart_product']) {
             $i++;
             $this->add(NULL, $TEXT_KEYBOARD['main_cart'], NULL, NULL, $row, $col);
             $col++;
         }
 
-        if ($user_info['role'] == 'administrator') {
+        if ($SQL_RESULT['role'] == 'administrator') {
             $i++;
             $this->add(NULL, $TEXT_KEYBOARD['main_admin'], NULL, NULL, $row, $col);
             $col++;
         }
 
-        if ($user_info['favorite'] != NULL) {
+        if ($SQL_RESULT['favorite']) {
             $i++;
             $this->add(NULL, $TEXT_KEYBOARD['main_favorite'], NULL, NULL, $row, $col);
         }
 
         if ($i != 0) $row++;
 
-        if ($user_info['phone_number'] != NULL)
+        if ($SQL_RESULT['phone_number'])
            $this->add(NULL, $TEXT_KEYBOARD['main_profile'], NULL, NULL, $row, 0);
         else
             $this->add('request_contact', $TEXT_KEYBOARD['main_login'], NULL, true, $row, 0);
@@ -181,23 +179,21 @@ class Keyboard
         return $this->get();
     }
 
-    private function user_account ($TEXT_KEYBOARD, $USER_ID, $SQL): bool|string
+    private function user_account ($TEXT_KEYBOARD, $SQL_RESULT): bool|string
     {
-        $user_info = $SQL->SELECT_FROM('*', 'users', "id = $USER_ID AND cart_product IS NOT NULL")->fetch_assoc();
-
         $this->add(NULL, $TEXT_KEYBOARD['profile_history'], NULL, NULL, 0, 0);
 
-        if ($user_info['profile_name'] == NULL)
+        if ($SQL_RESULT['profile_name'] == NULL)
             $this->add(NULL, $TEXT_KEYBOARD['profile_name_unknown'], NULL, NULL, 1, 0);
         else
             $this->add(NULL, $TEXT_KEYBOARD['profile_name'], NULL, NULL, 1, 0);
 
-        if ($user_info['sex'] == NULL)
+        if ($SQL_RESULT['sex'] == NULL)
             $this->add(NULL, $TEXT_KEYBOARD['profile_sex_unknown'], NULL, NULL, 1, 1);
         else
             $this->add(NULL, $TEXT_KEYBOARD['profile_sex'], NULL, NULL, 1, 1);
 
-        if ($user_info['birthday'] == NULL)
+        if ($SQL_RESULT['birthday'] == NULL)
             $this->add(NULL, $TEXT_KEYBOARD['profile_birthday_unknown'], NULL, NULL, 1, 2);
         else
             $this->add(NULL, $TEXT_KEYBOARD['profile_birthday'], NULL, NULL, 1, 2);
@@ -276,10 +272,6 @@ class SQL
     private function AUTO_CREATE (): void
     {
         $this->DB_link->query('SET CHARSET UTF8');
-//        $this->CREATE_TABLE('config',
-//            "`value` VARCHAR(255) NOT NULL,
-//            `description` VARCHAR(255) NULL DEFAULT NULL,
-//            `active` BOOLEAN NULL DEFAULT NULL", "`value` (11)");
 
         $this->CREATE_TABLE('users',
             "`id` INT NOT NULL,
@@ -312,8 +304,13 @@ class SQL
             `image_id` INT NULL DEFAULT NULL,
             `creator` VARCHAR(255) NOT NULL", "`vendor_code`");
 
-//        $this->CREATE_TABLE('category',
-//            "`id` INT NOT NULL,
+        $this->CREATE_TABLE('category',
+            "`id` INT NOT NULL AUTO_INCREMENT,
+            `count_product` INT NULL DEFAULT NULL,
+            `description` VARCHAR(255) NOT NULL", "`id`");
+
+//        $this->CREATE_TABLE('brand',
+//            "`id` INT NOT NULL AUTO_INCREMENT,
 //            `count_product` INT NULL DEFAULT NULL,
 //            `description` VARCHAR(255) NOT NULL", "`id`");
     }

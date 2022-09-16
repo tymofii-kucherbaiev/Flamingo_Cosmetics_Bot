@@ -1,19 +1,16 @@
 <?php
 if (file_get_contents('php://input')) {
-    /**
-     * @var string $DB_database
-     * @var string $DB_hostname
-     * @var string $DB_username
-     * @var string $DB_password
-     * @var string $DB_keygen
-     * @var string $DB_botname
-     */
-
     require './config/function.php';
-    require './config/config.php';
+
+    $DB_database = 'mn469049_db';
+    $DB_hostname = 'mn469049.mysql.tools';
+    $DB_username = 'mn469049_db';
+    $DB_password = 'jPWQQ8U9';
+    $DB_keygen = 'm205r1G6NHNs'; //12 values
+    $DB_botname = 'Flamingo_Cosmetics_Bot'; //12 values
 
     $SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname);
-    $API = new API('5322180222:AAHzWzIqD3XEvJcvV28xo-Fd56oo-H8SAiU');
+    $API = new API('5484985114:AAEhGnuPiLBzTGlxYX8wrIdYgoxlxGDXKg0');
 
     $text = json_decode(file_get_contents('./config/text.json'), true)['content'];
 
@@ -36,6 +33,18 @@ if (file_get_contents('php://input')) {
 
     $API->answerCallbackQuery(NULL, NULL, $data['id']);
 
+    $SQL_RESULT = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
+
+    if (!$SQL_RESULT) {
+            $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code, favorite, cart_product, role',
+                "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}',
+                 '4712826232980, 4712826234520, 4712826236451', '4712826232234 [2], 4712826223980 [1], 4712826232980 [3]', 'administrator'");
+
+//        $SQL->INSERT_INTO('users', 'id, username, first_name, last_name, language_code',
+//            "'$user_id', '$user_username', '$user_first_name', '$user_last_name', '{$data['from']['language_code']}'");
+        $SQL_RESULT = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
+    }
+
     if (array_key_exists('callback_query', $input)) {
         require './query/callback.php';
     } else {
@@ -46,10 +55,10 @@ if (file_get_contents('php://input')) {
         $SQL->UPDATE('users',
             "phone_number = '" . substr($data['contact']['phone_number'], 1) . "'",
             "id = $user_id");
+        $SQL_RESULT = $SQL->SELECT_FROM('*', 'users', "id = $user_id")->fetch_assoc();
         if ($data['reply_to_message']['text'] == $text_message['welcome']) {
-
             $keyboard = new Keyboard('keyboard', false);
-            $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $user_id, $SQL);
+            $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $SQL_RESULT);
 
             $API->sendMessage($user_first_name . ", " . $text_message['welcome_authorize_caption'], $user_id, $keyboard);
         }
