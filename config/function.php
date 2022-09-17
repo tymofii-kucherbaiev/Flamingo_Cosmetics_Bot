@@ -33,7 +33,7 @@ class API
                 'text' => $text,
                 'reply_markup' => $reply_markup
             );
-         return $this->curl(method: __FUNCTION__, request_params: $request_params);
+        return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
     public function answerCallbackQuery ($text, $show_alert, $callback_query_id): void
@@ -93,31 +93,31 @@ class Keyboard
 
     public function add ($keyboard_type, $text, $action, $type, $row, $col): void
     {
-            switch ($keyboard_type) {
-                case 'request_contact':
-                case 'request_location':
-                    $button =
-                        ["text" => $text,
-                            $keyboard_type => $type];
+        switch ($keyboard_type) {
+            case 'request_contact':
+            case 'request_location':
+                $button =
+                    ["text" => $text,
+                        $keyboard_type => $type];
 
-                    $this->keyboard[$this->keyboard_type][$row][$col] = $button;
-                    break;
+                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
+                break;
 
-                case 'callback_data':
-                    $button =
-                        ["text" => $text,
-                            $keyboard_type => "action:$action|type:$type"];
+            case 'callback_data':
+                $button =
+                    ["text" => $text,
+                        $keyboard_type => "action:$action|type:$type"];
 
-                    $this->keyboard[$this->keyboard_type][$row][$col] = $button;
-                    break;
+                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
+                break;
 
-                default:
-                    $button =
-                        ["text" => $text];
+            default:
+                $button =
+                    ["text" => $text];
 
-                    $this->keyboard[$this->keyboard_type][$row][$col] = $button;
-                    break;
-            }
+                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
+                break;
+        }
     }
 
     public function get (): bool|string
@@ -175,7 +175,7 @@ class Keyboard
         if ($i != 0) $row++;
 
         if ($SQL_RESULT['phone_number'])
-           $this->add(NULL, $TEXT_KEYBOARD['main_profile'], NULL, NULL, $row, 0);
+            $this->add(NULL, $TEXT_KEYBOARD['main_profile'], NULL, NULL, $row, 0);
         else
             $this->add('request_contact', $TEXT_KEYBOARD['main_login'], NULL, true, $row, 0);
 
@@ -209,9 +209,12 @@ class Keyboard
 
     private function catalog ($SQL_RESULT): bool|string
     {
+
         $sql_result = $SQL_RESULT->SELECT_FROM('*', 'category', NULL, 'count_characters');
-        $col = 0; $row = 0; $count = 0;
+        $col = 0; $row = 0; $count = 0; $num_rows = 0;
+
         foreach ($sql_result as $sql_value) {
+            $num_rows++;
             if (iconv_strlen($sql_value['description']) <= 16) {
                 $count++;
                 $this->add('callback_data',
@@ -231,6 +234,8 @@ class Keyboard
                 $col = 0;
                 $row++;
             }
+            if ($sql_result->num_rows == $num_rows)
+                $this->add('callback_data', 'Бренды', NULL, NULL, $row, 0);
         }
 
         return $this->get();
