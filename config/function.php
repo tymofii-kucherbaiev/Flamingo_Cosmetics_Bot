@@ -46,25 +46,14 @@ class API
         $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-    public function editMessageText ($text, $chat_id, $message_id, $reply_markup): bool|array|string
-    {
-        $request_params = array(
-            'chat_id' => $chat_id,
-            'message_id' => $message_id,
-            'text' => $text,
-            'reply_markup' => $reply_markup
-        );
-        return $this->curl(method: __FUNCTION__, request_params: $request_params);
-    }
-
-    public function deleteMessage ($chat_id, $message_id): void
-    {
-        $request_params = array(
-            'chat_id' => $chat_id,
-            'message_id' => $message_id
-        );
-        $this->curl(method: __FUNCTION__, request_params: $request_params);
-    }
+//    public function deleteMessage ($chat_id, $message_id): void
+//    {
+//        $request_params = array(
+//            'chat_id' => $chat_id,
+//            'message_id' => $message_id
+//        );
+//        $this->curl(method: __FUNCTION__, request_params: $request_params);
+//    }
 
 //    public function sendLocation ($chat_id, $latitude, $longitude): void
 //    {
@@ -99,9 +88,7 @@ class Keyboard
     public function __construct ($keyboard_type, $one_time_keyboard)
     {
         $this->keyboard_type = $keyboard_type;
-        $this->keyboard = array($this->keyboard_type => array(),
-            'resize_keyboard' => true,
-            'one_time_keyboard' => $one_time_keyboard);
+        $this->keyboard = array($this->keyboard_type => array(), 'resize_keyboard' => true, 'one_time_keyboard' => $one_time_keyboard);
     }
 
     public function add ($keyboard_type, $text, $action, $type, $row, $col): void
@@ -157,94 +144,14 @@ class Keyboard
             case 'catalog':
                 $result = $this->catalog($SQL_RESULT);
                 break;
-
-            case 'catalog_search':
-                $result = $this->catalog_search($TEXT_KEYBOARD);
-                break;
-
-            case 'test':
-                $result = $this->test($SQL_RESULT);
-                break;
-
-            case 'test_2':
-                $result = $this->test_2($TEXT_KEYBOARD,$SQL_RESULT);
-                break;
         }
 
         return $result;
     }
 
-    private function test ($result_sql): bool|string
-    {
-
-        $col = 0; $row = 0; $i = 0;
-
-        foreach ($result_sql as $sql_value) {
-//            if ($sql_value['Brand'] == 'CATRICE') {
-//                if ($i == 0) {
-//                    $i = 0;
-                    $this->add('callback_data',
-                        $sql_value['Brand'],
-                        $sql_value['Brand'], NULL, $row, $col);
-                    $col++;
-                    if ($col == 2) {
-                        $col = 0;
-                        $row++;
-                    }
-//                }
-
-
-
-//                $i++;
-//            }
-        }
-
-        return $this->get();
-    }
-    private function test_2 ($text, $result_sql): bool|string
-    {
-
-        $col = 0; $row = 0; $i = 0;
-
-        $res = explode ('|', $text);
-        $val = explode (':', $res[0]);
-
-        foreach ($result_sql as $sql_value) {
-            if ($sql_value['Brand'] == $val[1]) {
-            foreach (explode(', ', $sql_value['Category']) as $value) {
-
-
-
-
-
-
-//            if ($sql_value['Brand'] == 'CATRICE') {
-//                if ($i == 0) {
-//                    $i = 0;
-                    $this->add('callback_data',
-                        $value,
-                        NULl, NULL, $row, $col);
-                    $col++;
-                    if ($col == 2) {
-                        $col = 0;
-                        $row++;
-                    }
-//                }
-
-
-
-//                $i++;
-            }
-            break;
-            }
-        }
-
-        return $this->get();
-    }
-
     private function main_menu ($TEXT_KEYBOARD, $SQL_RESULT): bool|string
     {
-        $this->add(NULL, $TEXT_KEYBOARD['main_search'], NULL, NULL, 0, 0);
+        $this->add(NULL, $TEXT_KEYBOARD['main_catalog'], NULL, NULL, 0, 0);
 
         $i = 0; $col = 0; $row = 1;
 
@@ -299,18 +206,6 @@ class Keyboard
 
         return $this->get();
     }
-
-    private function catalog_search ($TEXT_KEYBOARD): bool|string
-    {
-        $this->add('callback_data', $TEXT_KEYBOARD['search_catalog'], NULL, NULL, 0, 0);
-        $this->add('callback_data', $TEXT_KEYBOARD['search_brand'], NULL, NULL, 0, 1);
-        $this->add('callback_data', $TEXT_KEYBOARD['search_all'], NULL, NULL, 1, 0);
-        $this->add('callback_data', $TEXT_KEYBOARD['main_back'], NULL, NULL, 2, 0);
-
-        return $this->get();
-    }
-
-
 
     private function catalog ($SQL_RESULT): bool|string
     {
@@ -386,6 +281,7 @@ class SQL
     private string $DB_username;
     private string $DB_password;
     private string $DB_keygen;
+    private string $DB_botname;
 
     private mysqli $DB_link;
 
@@ -393,13 +289,14 @@ class SQL
 
 
 
-    public function __construct ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen)
+    public function __construct ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname)
     {
         $this->DB_database = $DB_database;
         $this->DB_hostname = $DB_hostname;
         $this->DB_username = $DB_username;
         $this->DB_password = $DB_password;
         $this->DB_keygen = $DB_keygen;
+        $this->DB_botname = $DB_botname;
 
         $this->DB_link = new mysqli(
             hostname: $this->DB_hostname,
@@ -416,7 +313,6 @@ class SQL
 
         $this->CREATE_TABLE('users',
             "`id` INT NOT NULL,
-            `message_id` INT (11) NULL DEFAULT NULL,
             `username` VARCHAR(255) NULL DEFAULT NULL,
             `first_name` VARCHAR(255) NOT NULL,
             `last_name` VARCHAR(255) NULL DEFAULT NULL,
@@ -446,12 +342,6 @@ class SQL
             `image_id` INT NULL DEFAULT NULL,
             `creator` VARCHAR(255) NOT NULL", "`vendor_code`");
 
-//        $this->CREATE_TABLE('config_brand_category',
-//            "`id`", "`id`");
-
-
-
-
         $this->CREATE_TABLE('category',
             "`id` INT NOT NULL AUTO_INCREMENT,
             `count_product` INT NULL DEFAULT NULL,
@@ -472,14 +362,9 @@ class SQL
         return $result->fetch_array();
     }
 
-    public function link (): mysqli
-    {
-        return $this->DB_link;
-    }
-
     public function CREATE_TABLE ($TABLE_NAME, $PARAMS, $PRIMARY_KEY): void
     {
-        $this->TABLE_NAME = '_' . $TABLE_NAME . '_' . $this->DB_keygen;
+        $this->TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
         if (!$this->SHOW_TABLES()) {
             $this->DB_link->query("CREATE TABLE `$this->DB_database`.`$this->TABLE_NAME` 
             ($PARAMS, PRIMARY KEY ($PRIMARY_KEY))");
@@ -488,14 +373,14 @@ class SQL
 
     public function INSERT_INTO ($TABLE_NAME, $COLUMN, $VALUE): void
     {
-        $TABLE_NAME = '_' . $TABLE_NAME . '_' . $this->DB_keygen;
+        $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
         $this->DB_link->query("INSERT INTO $TABLE_NAME ($COLUMN) VALUES ($VALUE)");
 
     }
 
-    public function SELECT_FROM ($SELECT, $FROM, $WHERE, $ORDER_BY): bool|mysqli_result
+    public function SELECT_FROM ($SELECT, $TABLE_NAME, $WHERE, $ORDER_BY): bool|mysqli_result
     {
-        $TABLE_NAME = '_' . $FROM . '_' . $this->DB_keygen;
+        $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
         if ($WHERE)
             return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE");
         elseif ($ORDER_BY)
@@ -506,7 +391,7 @@ class SQL
 
     public function UPDATE ($TABLE_NAME, $SET, $WHERE): bool|mysqli_result
     {
-        $TABLE_NAME = '_' . $TABLE_NAME . '_' . $this->DB_keygen;
+        $TABLE_NAME = $this->DB_botname . '_' . $TABLE_NAME . '_' . $this->DB_keygen;
         return $this->DB_link->query("UPDATE $TABLE_NAME SET $SET WHERE $WHERE");
     }
 

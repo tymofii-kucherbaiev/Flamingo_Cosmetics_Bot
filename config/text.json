@@ -5,8 +5,7 @@
   "content": {
     "keyboard": {
       "main_back": "Главное меню",
-      "main_close": "Закрыть",
-      "main_search": "Найти товар",
+      "main_catalog": "Каталог",
       "main_login": "Регицстрация / Вход",
       "main_help": "Помощь",
       "main_admin": "Управление",
@@ -19,11 +18,7 @@
       "profile_sex_unknown": "\uD83D\uDFE1 Пол",
       "profile_sex": "Изменить пол",
       "profile_birthday_unknown": "\uD83D\uDFE1 Дата рождения",
-      "profile_birthday": "Изменить дату рождения",
-      "search_catalog": "Каталоги",
-      "search_brand": "Бренды",
-      "search_all": "Показать весь список",
-      "": ""
+      "profile_birthday": "Изменить дату рождения"
     },
     "message": {
       "welcome": "Добро пожаловать!",
