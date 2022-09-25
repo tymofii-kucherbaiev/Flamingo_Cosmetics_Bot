@@ -7,9 +7,8 @@ if (file_get_contents('php://input')) {
     $DB_username = 'mn469049_db';
     $DB_password = 'jPWQQ8U9';
     $DB_keygen = 'm205r1G6NHNs'; //12 values
-    $DB_botname = 'Flamingo_Cosmetics_Bot'; //12 values
 
-    $SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen, $DB_botname);
+    $SQL = new SQL ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen);
     $API = new API('5484985114:AAEhGnuPiLBzTGlxYX8wrIdYgoxlxGDXKg0');
 
     $text = json_decode(file_get_contents('./config/text.json'), true)['content'];
