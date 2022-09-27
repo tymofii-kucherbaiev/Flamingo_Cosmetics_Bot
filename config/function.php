@@ -138,12 +138,12 @@ class Keyboard
         return json_encode($this->keyboard);
     }
 
-    public function AUTO_CREATE ($AUTO, $TEXT_KEYBOARD, $SQL_RESULT): bool|string|null
+    public function auto_create ($keyboard, $text_keyboard, $sql_result): bool|string|null
     {
         $result = NULL;
-        switch ($AUTO) {
+        switch ($keyboard) {
             case 'main_menu':
-                $result = $this->main_menu($TEXT_KEYBOARD, $SQL_RESULT);
+                $result = $this->main_menu($text_keyboard, $sql_result);
                 break;
 
             case 'calendar':
@@ -151,232 +151,251 @@ class Keyboard
                 break;
 
             case 'user_account':
-                $result = $this->user_account($TEXT_KEYBOARD, $SQL_RESULT);
+                $result = $this->user_account($text_keyboard, $sql_result);
                 break;
 
             case 'catalog':
-                $result = $this->catalog($SQL_RESULT);
+                $result = $this->catalog();
                 break;
 
             case 'catalog_search':
-                $result = $this->catalog_search($TEXT_KEYBOARD);
+                $result = $this->catalog_search($text_keyboard);
+                break;
+
+            case 'admin_main':
+                $result = $this->admin_main($text_keyboard);
                 break;
 
             case 'test':
-                $result = $this->test($SQL_RESULT);
-                break;
-
-            case 'test_2':
-                $result = $this->test_2($TEXT_KEYBOARD,$SQL_RESULT);
+                $result = $this->test($sql_result);
                 break;
         }
 
         return $result;
     }
 
-    private function test ($result_sql): bool|string
+    private function admin_main ($text_keyboard): bool|string
     {
-
-        $col = 0; $row = 0; $i = 0;
-
-        foreach ($result_sql as $sql_value) {
-//            if ($sql_value['Brand'] == 'CATRICE') {
-//                if ($i == 0) {
-//                    $i = 0;
-                    $this->add('callback_data',
-                        $sql_value['Brand'],
-                        $sql_value['Brand'], NULL, $row, $col);
-                    $col++;
-                    if ($col == 2) {
-                        $col = 0;
-                        $row++;
-                    }
-//                }
+        $this->add('callback_data', '🔽 Добавить 🔽', NULL, NULL, 0, 0);
+        $this->add('callback_data', 'Товар', NULL, NULL, 1, 0);
+        $this->add('callback_data', 'Категорию', NULL, NULL, 1, 1);
+        $this->add('callback_data', 'Бренд', NULL, NULL, 1, 2);
+        $this->add('callback_data', '🔽 Заказы 🔽', NULL, NULL, 2, 0);
+        $this->add('callback_data', 'Новые', NULL, NULL, 3, 0);
+        $this->add('callback_data', 'Обработанные', NULL, NULL, 3, 1);
+        $this->add('callback_data', 'Закрыть', 'close', NULL, 4, 0);
+        return $this->get();
+    }
 
 
 
-//                $i++;
+//    private function test ($result_sql): bool|string
+//    {
+//
+//        $col = 0; $row = 0; $i = 0;
+//
+//        foreach ($result_sql as $sql_value) {
+////            if ($sql_value['Brand'] == 'CATRICE') {
+////                if ($i == 0) {
+////                    $i = 0;
+//                    $this->add('callback_data',
+//                        $sql_value['Brand'],
+//                        $sql_value['Brand'], NULL, $row, $col);
+//                    $col++;
+//                    if ($col == 2) {
+//                        $col = 0;
+//                        $row++;
+//                    }
+////                }
+//
+//
+//
+////                $i++;
+////            }
+//        }
+//
+//        return $this->get();
+//    }
+
+//    private function test ($result_sql): bool|string
+//    {
+//
+//        $col = 0; $row = 0; $i = 0;
+//
+//        $res = explode ('|', $text);
+//        $val = explode (':', $res[0]);
+//
+//        foreach ($result_sql as $sql_value) {
+////            if ($sql_value['Brand'] == $val[1]) {
+//            foreach (explode(', ', $sql_value['Category']) as $value) {
+//
+//
+//
+//
+//
+//
+////            if ($sql_value['Brand'] == 'CATRICE') {
+////                if ($i == 0) {
+////                    $i = 0;
+//                    $this->add('callback_data',
+//                        $value,
+//                        NULl, NULL, $row, $col);
+//                    $col++;
+//                    if ($col == 2) {
+//                        $col = 0;
+//                        $row++;
+//                    }
+////                }
+//
+//
+//
+////                $i++;
+////            }
+////            break;
 //            }
+//        }
+//
+//        return $this->get();
+//    }
+
+    private function main_menu ($text_keyboard, $sql_result): bool|string
+    {
+        $i = 0; $col = 0; $row = 0;
+
+        if ($sql_result['phone_number']) {
+            $this->add(NULL, $text_keyboard['main_search'], NULL, NULL, $row, $col);
+            $row++;
         }
 
-        return $this->get();
-    }
-    private function test_2 ($text, $result_sql): bool|string
-    {
-
-        $col = 0; $row = 0; $i = 0;
-
-        $res = explode ('|', $text);
-        $val = explode (':', $res[0]);
-
-        foreach ($result_sql as $sql_value) {
-            if ($sql_value['Brand'] == $val[1]) {
-            foreach (explode(', ', $sql_value['Category']) as $value) {
-
-
-
-
-
-
-//            if ($sql_value['Brand'] == 'CATRICE') {
-//                if ($i == 0) {
-//                    $i = 0;
-                    $this->add('callback_data',
-                        $value,
-                        NULl, NULL, $row, $col);
-                    $col++;
-                    if ($col == 2) {
-                        $col = 0;
-                        $row++;
-                    }
-//                }
-
-
-
-//                $i++;
-            }
-            break;
-            }
-        }
-
-        return $this->get();
-    }
-
-    private function main_menu ($TEXT_KEYBOARD, $SQL_RESULT): bool|string
-    {
-        $this->add(NULL, $TEXT_KEYBOARD['main_search'], NULL, NULL, 0, 0);
-
-        $i = 0; $col = 0; $row = 1;
-
-        if ($SQL_RESULT['cart_product']) {
+        if ($sql_result['cart_product']) {
             $i++;
-            $this->add(NULL, $TEXT_KEYBOARD['main_cart'], NULL, NULL, $row, $col);
+            $this->add(NULL, $text_keyboard['main_cart'], NULL, NULL, $row, $col);
             $col++;
         }
 
-        if ($SQL_RESULT['role'] == 'administrator') {
+        if ($sql_result['role'] == 'administrator') {
             $i++;
-            $this->add(NULL, $TEXT_KEYBOARD['main_admin'], NULL, NULL, $row, $col);
+            $this->add(NULL, $text_keyboard['main_admin'], NULL, NULL, $row, $col);
             $col++;
         }
 
-        if ($SQL_RESULT['favorite']) {
+        if ($sql_result['favorite']) {
             $i++;
-            $this->add(NULL, $TEXT_KEYBOARD['main_favorite'], NULL, NULL, $row, $col);
+            $this->add(NULL, $text_keyboard['main_favorite'], NULL, NULL, $row, $col);
         }
 
         if ($i != 0) $row++;
 
-        if ($SQL_RESULT['phone_number'])
-            $this->add(NULL, $TEXT_KEYBOARD['main_profile'], NULL, NULL, $row, 0);
+        if ($sql_result['phone_number'])
+            $this->add(NULL, $text_keyboard['main_profile'], NULL, NULL, $row, 0);
         else
-            $this->add('request_contact', $TEXT_KEYBOARD['main_login'], NULL, true, $row, 0);
+            $this->add('request_contact', $text_keyboard['main_login'], NULL, true, $row, 0);
 
-        $this->add(NULL, $TEXT_KEYBOARD['main_help'], NULL, NULL, $row, 1);
+        $this->add(NULL, $text_keyboard['main_help'], NULL, NULL, $row, 1);
         return $this->get();
     }
 
-    private function user_account ($TEXT_KEYBOARD, $SQL_RESULT): bool|string
+    private function user_account ($text_keyboard, $sql_result): bool|string
     {
-        $this->add(NULL, $TEXT_KEYBOARD['profile_history'], NULL, NULL, 0, 0);
+        $this->add('callback_data', $text_keyboard['profile_history'], NULL, NULL, 0, 0);
 
-        if ($SQL_RESULT['profile_name'] == NULL)
-            $this->add(NULL, $TEXT_KEYBOARD['profile_name_unknown'], NULL, NULL, 1, 0);
+        if ($sql_result['profile_name'] == NULL)
+            $this->add('callback_data', $text_keyboard['profile_name_unknown'], NULL, NULL, 1, 0);
         else
-            $this->add(NULL, $TEXT_KEYBOARD['profile_name'], NULL, NULL, 1, 0);
+            $this->add('callback_data', $text_keyboard['profile_name'], NULL, NULL, 1, 0);
 
-        if ($SQL_RESULT['sex'] == NULL)
-            $this->add(NULL, $TEXT_KEYBOARD['profile_sex_unknown'], NULL, NULL, 1, 1);
+        if ($sql_result['sex'] == NULL)
+            $this->add('callback_data', $text_keyboard['profile_sex_unknown'], NULL, NULL, 1, 1);
         else
-            $this->add(NULL, $TEXT_KEYBOARD['profile_sex'], NULL, NULL, 1, 1);
+            $this->add('callback_data', $text_keyboard['profile_sex'], NULL, NULL, 1, 1);
 
-        if ($SQL_RESULT['birthday'] == NULL)
-            $this->add(NULL, $TEXT_KEYBOARD['profile_birthday_unknown'], NULL, NULL, 1, 2);
+        if ($sql_result['birthday'] == NULL)
+            $this->add('callback_data', $text_keyboard['profile_birthday_unknown'], NULL, NULL, 1, 2);
         else
-            $this->add(NULL, $TEXT_KEYBOARD['profile_birthday'], NULL, NULL, 1, 2);
+            $this->add('callback_data', $text_keyboard['profile_birthday'], NULL, NULL, 1, 2);
 
-        $this->add(NULL, $TEXT_KEYBOARD['main_back'], NULL, NULL, 2, 0);
-
-        return $this->get();
-    }
-
-    private function catalog_search ($TEXT_KEYBOARD): bool|string
-    {
-        $this->add('callback_data', $TEXT_KEYBOARD['search_catalog'], NULL, NULL, 0, 0);
-        $this->add('callback_data', $TEXT_KEYBOARD['search_brand'], NULL, NULL, 0, 1);
-        $this->add('callback_data', $TEXT_KEYBOARD['search_all'], NULL, NULL, 1, 0);
-        $this->add('callback_data', $TEXT_KEYBOARD['main_back'], NULL, NULL, 2, 0);
+        $this->add('callback_data', $text_keyboard['main_close'], 'close', NULL, 2, 0);
 
         return $this->get();
     }
+//
+//    private function catalog_search ($TEXT_KEYBOARD): bool|string
+//    {
+//        $this->add('callback_data', $TEXT_KEYBOARD['search_catalog'], NULL, NULL, 0, 0);
+//        $this->add('callback_data', $TEXT_KEYBOARD['search_brand'], NULL, NULL, 0, 1);
+//        $this->add('callback_data', $TEXT_KEYBOARD['search_all'], NULL, NULL, 1, 0);
+//        $this->add('callback_data', $TEXT_KEYBOARD['main_back'], NULL, NULL, 2, 0);
+//
+//        return $this->get();
+//    }
 
 
 
-    private function catalog ($SQL_RESULT): bool|string
-    {
-
-        $sql_result = $SQL_RESULT->SELECT_FROM('*', 'category', NULL, 'count_characters');
-        $col = 0; $row = 0; $count = 0; $num_rows = 0;
-
-        foreach ($sql_result as $sql_value) {
-            $num_rows++;
-            if (iconv_strlen($sql_value['description']) <= 16) {
-                $count++;
-                $this->add('callback_data',
-                    $sql_value['description'] . ' [' . $sql_value['count_product'] . ']',
-                    'category', $sql_value['id'], $row, $col);
-                $col++;
-            } else {
-                if ($count >= 1) $row++;
-                $col = 0;
-                $this->add('callback_data',
-                    $sql_value['description'] . ' [' . $sql_value['count_product'] . ']',
-                    'category', $sql_value['id'], $row, $col);
-                $row++;
-            }
-            if ($col == 2) {
-                $count = 0;
-                $col = 0;
-                $row++;
-            }
-            if ($sql_result->num_rows == $num_rows)
-                $this->add('callback_data', 'Бренды', NULL, NULL, $row, 0);
-        }
-
-        return $this->get();
-    }
-
-    private function calendar (): bool|string
-    {
-        $v = 0;
-        for ($i = 1; $i <= 7; $i++) {
-            $v++;
-            $this->add('callback_data', $i, NULL, NULL, 0, $i-1);
-        }
-        for ($i = 1; $i <= 7; $i++) {
-            $v++;
-            $this->add('callback_data', $i+7, NULL, NULL, 1, $i-1);
-        }
-        for ($i = 1; $i <= 7; $i++) {
-            $v++;
-            $this->add('callback_data', $i+14, NULL, NULL, 2, $i-1);
-        }
-        for ($i = 1; $i <= 7; $i++) {
-            $v++;
-            $this->add('callback_data', $i+21, NULL, NULL, 3, $i-1);
-        }
-        for ($i = 1; $i <= 7; $i++) {
-            $v++;
-            if ($v <= 31)
-                $this->add('callback_data', $i+28, NULL, NULL, 4, $i-1);
-            else
-                $this->add('callback_data', '-', NULL, NULL, 4, $i-1);
-        }
-//        $i = 0;
-//        $this->add('callback_data', $i, NULL, NULL, 0, 0);
-//        $this->add('callback_data', $i, NULL, NULL, 0, 0);
-        return $this->get();
-    }
+//    private function catalog ($SQL_RESULT): bool|string
+//    {
+//
+//        $sql_result = $SQL_RESULT->SELECT_FROM('*', 'category', NULL, 'count_characters');
+//        $col = 0; $row = 0; $count = 0; $num_rows = 0;
+//
+//        foreach ($sql_result as $sql_value) {
+//            $num_rows++;
+//            if (iconv_strlen($sql_value['description']) <= 16) {
+//                $count++;
+//                $this->add('callback_data',
+//                    $sql_value['description'] . ' [' . $sql_value['count_product'] . ']',
+//                    'category', $sql_value['id'], $row, $col);
+//                $col++;
+//            } else {
+//                if ($count >= 1) $row++;
+//                $col = 0;
+//                $this->add('callback_data',
+//                    $sql_value['description'] . ' [' . $sql_value['count_product'] . ']',
+//                    'category', $sql_value['id'], $row, $col);
+//                $row++;
+//            }
+//            if ($col == 2) {
+//                $count = 0;
+//                $col = 0;
+//                $row++;
+//            }
+//            if ($sql_result->num_rows == $num_rows)
+//                $this->add('callback_data', 'Бренды', NULL, NULL, $row, 0);
+//        }
+//
+//        return $this->get();
+//    }
+//
+//    private function calendar (): bool|string
+//    {
+//        $v = 0;
+//        for ($i = 1; $i <= 7; $i++) {
+//            $v++;
+//            $this->add('callback_data', $i, NULL, NULL, 0, $i-1);
+//        }
+//        for ($i = 1; $i <= 7; $i++) {
+//            $v++;
+//            $this->add('callback_data', $i+7, NULL, NULL, 1, $i-1);
+//        }
+//        for ($i = 1; $i <= 7; $i++) {
+//            $v++;
+//            $this->add('callback_data', $i+14, NULL, NULL, 2, $i-1);
+//        }
+//        for ($i = 1; $i <= 7; $i++) {
+//            $v++;
+//            $this->add('callback_data', $i+21, NULL, NULL, 3, $i-1);
+//        }
+//        for ($i = 1; $i <= 7; $i++) {
+//            $v++;
+//            if ($v <= 31)
+//                $this->add('callback_data', $i+28, NULL, NULL, 4, $i-1);
+//            else
+//                $this->add('callback_data', '-', NULL, NULL, 4, $i-1);
+//        }
+////        $i = 0;
+////        $this->add('callback_data', $i, NULL, NULL, 0, 0);
+////        $this->add('callback_data', $i, NULL, NULL, 0, 0);
+//        return $this->get();
+//    }
 }
 
 class SQL
@@ -422,7 +441,6 @@ class SQL
             `last_name` VARCHAR(255) NULL DEFAULT NULL,
             `profile_name` VARCHAR(255) NULL DEFAULT NULL,
             `phone_number` BIGINT NULL DEFAULT NULL,
-            `language_code` VARCHAR(255) NULL DEFAULT NULL,
             `birthday` DATE NULL DEFAULT NULL,
             `sex` VARCHAR(255) NULL DEFAULT NULL,
             `address` VARCHAR(255) NULL DEFAULT NULL,
@@ -444,6 +462,7 @@ class SQL
             `price_old` INT NULL DEFAULT NULL,
             `price_new` INT NULL DEFAULT NULL,
             `image_id` INT NULL DEFAULT NULL,
+            `callback_id` INT NULL DEFAULT NULL,
             `creator` VARCHAR(255) NOT NULL", "`vendor_code`");
 
 //        $this->CREATE_TABLE('config_brand_category',
@@ -493,15 +512,15 @@ class SQL
 
     }
 
-    public function SELECT_FROM ($SELECT, $FROM, $WHERE, $ORDER_BY): bool|mysqli_result
+    public function SELECT_FROM ($SELECT, $FROM, $WHERE, $ORDER_BY): bool|array|null
     {
         $TABLE_NAME = '_' . $FROM . '_' . $this->DB_keygen;
         if ($WHERE)
-            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE");
+            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE")->fetch_assoc();
         elseif ($ORDER_BY)
-            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` ORDER BY $ORDER_BY");
+            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` ORDER BY $ORDER_BY")->fetch_assoc();
         else
-            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME`");
+            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME`")->fetch_assoc();
     }
 
     public function UPDATE ($TABLE_NAME, $SET, $WHERE): bool|mysqli_result

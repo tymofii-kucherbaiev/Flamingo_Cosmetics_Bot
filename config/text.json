@@ -5,23 +5,35 @@
   "content": {
     "keyboard": {
       "main_back": "Главное меню",
-      "main_catalog": "Каталог",
-      "main_login": "Регицстрация / Вход",
+      "main_close": "Закрыть",
+      "main_search": "Найти товар",
+      "main_login": "⚠ Регицстрация ⚠",
       "main_help": "Помощь",
       "main_admin": "Управление",
       "main_favorite": "Избранное",
       "main_cart": "Корзина",
       "main_profile": "Мой аккаунт",
       "profile_history": "История заказов",
-      "profile_name_unknown": "\uD83D\uDFE1 Имя",
+      "profile_name_unknown": "Имя",
+      "yellow": "\uD83D\uDFE1",
       "profile_name": "Изменить имя",
-      "profile_sex_unknown": "\uD83D\uDFE1 Пол",
+      "profile_sex_unknown": "Пол",
       "profile_sex": "Изменить пол",
-      "profile_birthday_unknown": "\uD83D\uDFE1 Дата рождения",
-      "profile_birthday": "Изменить дату рождения"
+      "profile_birthday_unknown": "Дата рождения",
+      "profile_birthday": "Изменить дату рождения",
+      "search_catalog": "Каталоги",
+      "search_brand": "Бренды",
+      "search_all": "Показать весь список",
+      "max_caption": "123456789-123456789-123456789-123456789-12345",
+      "": ""
     },
     "message": {
-      "welcome": "Добро пожаловать!",
+      "welcome": {
+        "no_authorize": "Добро пожаловать!\n\nЧто бы продолжить пользоваться ботом необходимо зарегистрироваться.",
+        "authorize": ", спасибо за регистрацию!\nХорошего дня и удачных покупок!",
+        "general": ", добро пожаловать!"
+      },
+
       "welcome_authorize_user": "Добро пожаловать: ",
       "welcome_authorize_caption": "теперь ты можешь пользоваться всеми возможностями нашего магазина."
     }
