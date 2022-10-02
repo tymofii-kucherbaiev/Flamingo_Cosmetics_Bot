@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "last_date_update": "12.09.2022",
   "content": {
+    "currency": "₽",
     "keyboard": {
       "main_back": "Главное меню",
       "main_close": "Закрыть",
