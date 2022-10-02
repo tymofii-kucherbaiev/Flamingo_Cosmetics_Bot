@@ -36,6 +36,18 @@ class API
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
+    public function sendPhoto ($text, $chat_id, $reply_markup)
+    {
+        $request_params = array (
+            'chat_id' => $chat_id,
+//            'photo' => "https://i0.wp.com/dianomi-dn.com/wp-content/uploads/2022/08/590125b0-c982-11ec-80c9-9c8e99520657_b4e69b3b-e7e3-11ec-80ca-9c8e99520657.jpeg?fit=480%2C480&ssl=1",
+            'photo' => "AgACAgQAAxkDAAIHVWM1VVDKHDOtNwpTrMFJm-_6-YPQAAIjrzEbpxalURxUqDnu7r0gAQADAgADcwADKgQ",
+            'caption' => $text,
+            'reply_markup' => $reply_markup);
+
+        return $this->curl(method: __FUNCTION__, request_params: $request_params);
+    }
+
     public function answerCallbackQuery ($text, $show_alert, $callback_query_id): void
     {
         $request_params = array(
@@ -166,8 +178,16 @@ class Keyboard
                 $result = $this->admin_main($text_keyboard);
                 break;
 
+            case 'admin_product_add':
+                $result = $this->admin_product_add($text_keyboard);
+                break;
+
             case 'test':
                 $result = $this->test($sql_result);
+                break;
+
+            case 'message_test':
+                $result = $this->message_test($sql_result);
                 break;
         }
 
@@ -176,18 +196,48 @@ class Keyboard
 
     private function admin_main ($text_keyboard): bool|string
     {
-        $this->add('callback_data', '🔽 Добавить 🔽', NULL, NULL, 0, 0);
-        $this->add('callback_data', 'Товар', NULL, NULL, 1, 0);
-        $this->add('callback_data', 'Категорию', NULL, NULL, 1, 1);
-        $this->add('callback_data', 'Бренд', NULL, NULL, 1, 2);
-        $this->add('callback_data', '🔽 Заказы 🔽', NULL, NULL, 2, 0);
-        $this->add('callback_data', 'Новые', NULL, NULL, 3, 0);
-        $this->add('callback_data', 'Обработанные', NULL, NULL, 3, 1);
-        $this->add('callback_data', 'Закрыть', 'close', NULL, 4, 0);
+        $this->add('callback_data', '🟢 Добавить 🟢', NULL, NULL, 0, 0);
+        $this->add('callback_data', 'Товар', 'product_add', NULL, 1, 0);
+        $this->add('callback_data', 'Категорию', 'product_category', NULL, 1, 1);
+        $this->add('callback_data', 'Бренд', 'product_brand', NULL, 1, 2);
+        $this->add('callback_data', '🔴 Удалить 🔴', NULL, NULL, 2, 0);
+        $this->add('callback_data', 'Товар', NULL, NULL, 3, 0);
+        $this->add('callback_data', 'Категорию', NULL, NULL, 3, 1);
+        $this->add('callback_data', 'Бренд', NULL, NULL, 3, 2);
+        $this->add('callback_data', '🟡 Заказы 🟡', NULL, NULL, 4, 0);
+        $this->add('callback_data', 'Новые', 'new_order', NULL, 5, 0);
+        $this->add('callback_data', 'Обработанные', 'history_order', NULL, 5, 1);
+        $this->add('callback_data', 'Закрыть', 'close', NULL, 6, 0);
         return $this->get();
     }
 
+    private function admin_product_add ($text_keyboard): bool|string
+    {
+        $this->add('callback_data', '🔺', 'admin_back', NULL, 0, 0);
+        $this->add('callback_data', '3 шт.', 'admin_back', NULL, 0, 1);
+        $this->add('callback_data', '🔻', 'admin_back', NULL, 0, 2);
+        $this->add('callback_data', '⬅', 'admin_back', NULL, 1, 0);
+        $this->add('callback_data', '1/40', 'admin_back', NULL, 1, 1);
+        $this->add('callback_data', '➡', 'next', NULL, 1, 2);
+        return $this->get();
+    }
 
+    private function message_test ($text_keyboard): bool|string
+    {
+        $this->add('callback_data', '⬅', 'admin_back', NULL, 0, 0);
+        $this->add('callback_data', 'Цвет: 010', 'admin_back', NULL, 0, 1);
+        $this->add('callback_data', '➡', 'admin_back', NULL, 0, 2);
+
+        $this->add('callback_data', '⭐', 'next', NULL, 1, 0);
+        $this->add('callback_data', '343 ₽', 'next', NULL, 1, 1);
+        $this->add('callback_data', '🛒', 'next', NULL, 1, 2);
+
+        $this->add('callback_data', '⬅', 'admin_back', NULL, 2, 0);
+        $this->add('callback_data', 'Страница 1 из 40', 'admin_back', NULL, 2, 1);
+        $this->add('callback_data', '➡', 'next', NULL, 2, 2);
+
+        return $this->get();
+    }
 
 //    private function test ($result_sql): bool|string
 //    {
@@ -426,63 +476,78 @@ class SQL
             password: $this->DB_password,
             database: $this->DB_database);
 
+        $this->DB_link->query('SET CHARSET UTF8');
         $this->AUTO_CREATE();
     }
 
     private function AUTO_CREATE (): void
     {
-        $this->DB_link->query('SET CHARSET UTF8');
 
         $this->CREATE_TABLE('users',
-            "`id` INT NOT NULL,
-            `message_id` INT (11) NULL DEFAULT NULL,
-            `username` VARCHAR(255) NULL DEFAULT NULL,
-            `first_name` VARCHAR(255) NOT NULL,
-            `last_name` VARCHAR(255) NULL DEFAULT NULL,
-            `profile_name` VARCHAR(255) NULL DEFAULT NULL,
-            `phone_number` BIGINT NULL DEFAULT NULL,
-            `birthday` DATE NULL DEFAULT NULL,
-            `sex` VARCHAR(255) NULL DEFAULT NULL,
-            `address` VARCHAR(255) NULL DEFAULT NULL,
-            `favorite` LONGTEXT NULL DEFAULT NULL,
-            `cart_product` MEDIUMTEXT NULL DEFAULT NULL,
-            `cart_date` DATE NULL DEFAULT NULL,
-            `role` VARCHAR(255) NOT NULL DEFAULT 'viewer'", "`id`");
-
-        $this->CREATE_TABLE('product',
-            "`vendor_code` BIGINT NOT NULL,
-            `barcode_original` BIGINT NULL DEFAULT NULL,
-            `barcode_discount` BIGINT NULL DEFAULT NULL,
-            `title` VARCHAR(255) NULL DEFAULT NULL,
-            `caption` VARCHAR(255) NULL DEFAULT NULL,
-            `color` VARCHAR(255) NULL DEFAULT NULL,
-            `brand` VARCHAR(255) NULL DEFAULT NULL,
-            `country` VARCHAR(255) NULL DEFAULT NULL,
-            `category` INT NULL DEFAULT NULL,
-            `price_old` INT NULL DEFAULT NULL,
-            `price_new` INT NULL DEFAULT NULL,
-            `image_id` INT NULL DEFAULT NULL,
-            `callback_id` INT NULL DEFAULT NULL,
-            `creator` VARCHAR(255) NOT NULL", "`vendor_code`");
-
-//        $this->CREATE_TABLE('config_brand_category',
-//            "`id`", "`id`");
-
-
-
+            "`id` int(11) NOT NULL PRIMARY KEY,
+            `message_id` int(11) DEFAULT NULL,
+            `callback_id` int(11) DEFAULT NULL,
+            `username` varchar(255) DEFAULT NULL,
+            `first_name` varchar(255) NOT NULL,
+            `last_name` varchar(255) DEFAULT NULL,
+            `profile_name` varchar(255) DEFAULT NULL,
+            `phone_number` bigint(20) DEFAULT NULL,
+            `birthday` date DEFAULT NULL,
+            `sex` varchar(255) DEFAULT NULL,
+            `address` varchar(255) DEFAULT NULL,
+            `favorite` longtext,
+            `cart_product` mediumtext,
+            `cart_date` date DEFAULT NULL,
+            `role` varchar(255) NOT NULL DEFAULT 'viewer'");
 
         $this->CREATE_TABLE('category',
-            "`id` INT NOT NULL AUTO_INCREMENT,
-            `count_product` INT NULL DEFAULT NULL,
-            `count_characters` INT NULL DEFAULT NULL,
-            `description` VARCHAR(255) NOT NULL", "`id`");
+            "`id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+            `category` varchar(50) NOT NULL,
+            `count_product` int(11) DEFAULT NULL,
+            `count_characters` int(11) DEFAULT NULL,
+            UNIQUE KEY `category_UNIQUE` (`category`),
+            INDEX `category` (`category`)");
 
         $this->CREATE_TABLE('brand',
-            "`id` INT NOT NULL AUTO_INCREMENT,
-            `count_product` INT NULL DEFAULT NULL,
-            `count_characters` INT NULL DEFAULT NULL,
-            `country` VARCHAR(255) NOT NULL,
-            `description` VARCHAR(255) NOT NULL", "`id`");
+            "`id` INT (11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+            `brand` varchar(50) NOT NULL,
+            `count_product` int(11) DEFAULT NULL,
+            `count_characters` int(11) DEFAULT NULL,
+            UNIQUE KEY `brand_UNIQUE` (`brand`),
+            INDEX `brand` (`brand`)");
+
+        $this->CREATE_TABLE('title',
+            "`id` INT (11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+            `title` VARCHAR (150) NOT NULL,
+            INDEX `title` (`title`)");
+
+        $this->CREATE_TABLE('caption',
+            "`id` INT (11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+            `caption` VARCHAR (1000) NOT NULL,
+            INDEX `title` (`caption`)");
+
+        $this->CREATE_TABLE('country',
+            "`id` INT (11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+            `country` VARCHAR (50) NOT NULL,
+            INDEX `title` (`country`)");
+
+        $this->CREATE_TABLE('product',
+            "`vendor_code` bigint(20) NOT NULL PRIMARY KEY,
+            `title_id` INT (11) NOT NULL,
+            `caption_id` INT (11) NOT NULL,
+            `color` varchar(50) DEFAULT NULL,
+            `country_id` INT (11) DEFAULT NULL,
+            `price_old` int(11) DEFAULT NULL,
+            `price_new` int(11) DEFAULT NULL,
+            `image_id` varchar(150) DEFAULT NULL,
+            `category_id` int(11) DEFAULT NULL,
+            `brand_id` int(11) DEFAULT NULL,
+            `group_id` int(11) DEFAULT NULL,
+            FOREIGN KEY brand (brand_id) REFERENCES _brand_m205r1G6NHNs (id),
+            FOREIGN KEY category (category_id) REFERENCES _category_m205r1G6NHNs (id),
+            FOREIGN KEY title (title_id) REFERENCES _title_m205r1G6NHNs (id),
+            FOREIGN KEY caption (caption_id) REFERENCES _caption_m205r1G6NHNs (id)");
+
     }
 
     private function SHOW_TABLES (): bool|array|null
@@ -496,25 +561,25 @@ class SQL
         return $this->DB_link;
     }
 
-    public function CREATE_TABLE ($TABLE_NAME, $PARAMS, $PRIMARY_KEY): void
+    public function CREATE_TABLE ($TABLE_NAME, $PARAMS): void
     {
-        $this->TABLE_NAME = '_' . $TABLE_NAME . '_' . $this->DB_keygen;
+        $this->TABLE_NAME = $TABLE_NAME . '_' . $this->DB_keygen;
         if (!$this->SHOW_TABLES()) {
             $this->DB_link->query("CREATE TABLE `$this->DB_database`.`$this->TABLE_NAME` 
-            ($PARAMS, PRIMARY KEY ($PRIMARY_KEY))");
+            ($PARAMS) ENGINE=MyISAM DEFAULT CHARSET=utf8");
         }
     }
 
     public function INSERT_INTO ($TABLE_NAME, $COLUMN, $VALUE): void
     {
-        $TABLE_NAME = '_' . $TABLE_NAME . '_' . $this->DB_keygen;
+        $TABLE_NAME = $TABLE_NAME . '_' . $this->DB_keygen;
         $this->DB_link->query("INSERT INTO $TABLE_NAME ($COLUMN) VALUES ($VALUE)");
 
     }
 
     public function SELECT_FROM ($SELECT, $FROM, $WHERE, $ORDER_BY): bool|array|null
     {
-        $TABLE_NAME = '_' . $FROM . '_' . $this->DB_keygen;
+        $TABLE_NAME = $FROM . '_' . $this->DB_keygen;
         if ($WHERE)
             return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE")->fetch_assoc();
         elseif ($ORDER_BY)
@@ -525,7 +590,7 @@ class SQL
 
     public function UPDATE ($TABLE_NAME, $SET, $WHERE): bool|mysqli_result
     {
-        $TABLE_NAME = '_' . $TABLE_NAME . '_' . $this->DB_keygen;
+        $TABLE_NAME = $TABLE_NAME . '_' . $this->DB_keygen;
         return $this->DB_link->query("UPDATE $TABLE_NAME SET $SET WHERE $WHERE");
     }
 

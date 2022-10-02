@@ -35,7 +35,17 @@ switch ($action) {
         $API->deleteMessage($user_id, $sql_result['callback_id']);
         break;
 
+        /* ADMIN ZONE */
 
+    case 'product_add':
+
+        $keyboard = new Keyboard('inline_keyboard', false);
+        $keyboard = $keyboard->AUTO_CREATE('admin_product_add', $text_keyboard, $sql_result);
+
+        $API->editMessageText('Придумайте название', $user_id, $sql_result['callback_id'], $keyboard);
+
+
+        break;
 }
 
 
