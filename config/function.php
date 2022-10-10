@@ -31,6 +31,7 @@ class API
             $request_params = array (
                 'chat_id' => $chat_id,
                 'text' => $text,
+                'parse_mode' => 'MarkdownV2',
                 'reply_markup' => $reply_markup
             );
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
@@ -43,6 +44,7 @@ class API
 //            'photo' => "https://i0.wp.com/dianomi-dn.com/wp-content/uploads/2022/08/590125b0-c982-11ec-80c9-9c8e99520657_b4e69b3b-e7e3-11ec-80ca-9c8e99520657.jpeg?fit=480%2C480&ssl=1",
             'photo' => "AgACAgQAAxkDAAIHVWM1VVDKHDOtNwpTrMFJm-_6-YPQAAIjrzEbpxalURxUqDnu7r0gAQADAgADcwADKgQ",
             'caption' => $text,
+            'parse_mode' => 'MarkdownV2',
             'reply_markup' => $reply_markup);
 
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
@@ -150,7 +152,7 @@ class Keyboard
         return json_encode($this->keyboard);
     }
 
-    public function auto_create ($keyboard, $text_keyboard, $sql_result): bool|string|null
+    public function auto_create ($keyboard, $text_keyboard, $sql_result, $action, $type): bool|string|null
     {
         $result = NULL;
         switch ($keyboard) {
@@ -187,7 +189,7 @@ class Keyboard
                 break;
 
             case 'message_test':
-                $result = $this->message_test($sql_result);
+                $result = $this->message_test($sql_result, $action);
                 break;
         }
 
@@ -222,11 +224,11 @@ class Keyboard
         return $this->get();
     }
 
-    private function message_test ($text_keyboard): bool|string
+    private function message_test ($text_keyboard, $action): bool|string
     {
-        $this->add('callback_data', '⬅', 'admin_back', NULL, 0, 0);
+        $this->add('callback_data', '⬅', $action, 'color_back', 0, 0);
         $this->add('callback_data', 'Цвет: 010', 'admin_back', NULL, 0, 1);
-        $this->add('callback_data', '➡', 'admin_back', NULL, 0, 2);
+        $this->add('callback_data', '➡', $action, 'color_next', 0, 2);
 
         $this->add('callback_data', '⭐', 'next', NULL, 1, 0);
         $this->add('callback_data', '343 ₽', 'next', NULL, 1, 1);
@@ -543,6 +545,7 @@ class SQL
             `category_id` int(11) DEFAULT NULL,
             `brand_id` int(11) DEFAULT NULL,
             `group_id` int(11) DEFAULT NULL,
+            `is_status` BOOLEAN DEFAULT TRUE,
             FOREIGN KEY brand (brand_id) REFERENCES _brand_m205r1G6NHNs (id),
             FOREIGN KEY category (category_id) REFERENCES _category_m205r1G6NHNs (id),
             FOREIGN KEY title (title_id) REFERENCES _title_m205r1G6NHNs (id),
