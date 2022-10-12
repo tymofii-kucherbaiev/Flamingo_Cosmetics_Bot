@@ -2,63 +2,64 @@
 /**
  * @var $data
  * @var $SQL
- * @var $API
+ * @var $core
  * @var $user_id
  * @var $user_username
  * @var $user_first_name
  * @var $user_last_name
  * @var $text_keyboard
  * @var $text_message
- * @var $sql_result
+ * @var $sql_result_user
+ *
+ *
+ * @var $mysqli
  */
 
 switch ($data['text']) {
     case $text_keyboard['main_admin']:
-        if ($sql_result['role'] == 'administrator') {
-            $API->deleteMessage($user_id, $data['message_id']);
+        if ($sql_result_user['role'] == 'administrator') {
+            $core->deleteMessage($user_id, $data['message_id']);
             $keyboard = new Keyboard('inline_keyboard', false);
-            $keyboard = $keyboard->AUTO_CREATE('admin_main', $text_keyboard, $sql_result);
+            $keyboard = $keyboard->auto_create('admin_main', $text_keyboard, $sql_result_user, NULL, NULL);
 
-            $callback_sendMessage = $API->sendMessage($text_message['welcome'], $user_id, $keyboard);
-            $callback_sendMessage = json_decode($callback_sendMessage, true);
-            $SQL->UPDATE('users', "callback_id = '{$callback_sendMessage['result']['message_id']}'", "id = $user_id");
-//            $API->deleteMessage($user_id, $sql_result['message_id']);
-            $API->deleteMessage($user_id, $sql_result['callback_id']);
+//            $callback_sendMessage = $core->sendMessage($text_message['welcome'], $user_id, $keyboard);
+//            $callback_sendMessage = json_decode($callback_sendMessage, true);
+//            $SQL->UPDATE('users', "callback_id = '{$callback_sendMessage['result']['message_id']}'", "id = $user_id");
+            $core->deleteMessage($sql_result_user['message_id']);
+            $core->deleteMessage($sql_result_user['callback_id']);
         }
         break;
 
-
     case '/start':
-        $API->deleteMessage($user_id, $data['message_id']);
+        $core->deleteMessage($user_id, $data['message_id']);
         $keyboard = new Keyboard('keyboard', false);
-        $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $sql_result);
+        $keyboard = $keyboard->auto_create('main_menu', $text_keyboard, $sql_result_user, NULL, NULL);
 
+        if ($sql_result_user['phone_number']) $message = $sql_result_user['first_name'] . $text_message['welcome']['general'];
+        else $message = $text_message['welcome']['no_authorize'];
 
-        if ($sql_result['phone_number']) {
-            $message = $sql_result['first_name']  . $text_message['welcome']['general'];
-        } else {
-            $message = $text_message['welcome']['no_authorize'];
-        }
-
-
-        $callback_sendMessage = $API->sendMessage($message, $user_id, $keyboard);
-        $callback_sendMessage = json_decode($callback_sendMessage, true);
-        $SQL->UPDATE('users', "message_id = '{$callback_sendMessage['result']['message_id']}'", "id = $user_id");
-        $API->deleteMessage($user_id, $sql_result['message_id']);
-        $API->deleteMessage($user_id, $sql_result['callback_id']);
+        $callback_sendMessage = json_decode(
+            $core->sendMessage(
+                $message,
+                $keyboard,
+                NULL
+            ), true);
+        $mysqli->query("CALL PC_update_user('message_id', '{$callback_sendMessage['result']['message_id']}', '$user_id')");
+        $core->deleteMessage($sql_result_user['message_id']);
+        $core->deleteMessage($sql_result_user['callback_id']);
         break;
 
     case $text_keyboard['main_profile']:
     case '/account':
-        $API->deleteMessage($user_id, $data['message_id']);
+        $core->deleteMessage($user_id, $data['message_id']);
         $keyboard = new Keyboard('inline_keyboard', false);
         $keyboard = $keyboard->AUTO_CREATE('user_account', $text_keyboard, $sql_result);
 
-        $callback_sendMessage = $API->sendMessage($text_message['welcome'], $user_id, $keyboard);
+        $callback_sendMessage = $core->sendMessage($text_message['welcome'], $user_id, $keyboard);
         $callback_sendMessage = json_decode($callback_sendMessage, true);
         $SQL->UPDATE('users', "callback_id = '{$callback_sendMessage['result']['message_id']}'", "id = $user_id");
-//        $API->deleteMessage($user_id, $sql_result['message_id']);
-        $API->deleteMessage($user_id, $sql_result['callback_id']);
+//        $core->deleteMessage($user_id, $sql_result['message_id']);
+        $core->deleteMessage($user_id, $sql_result['callback_id']);
         break;
 
     case $text_keyboard['main_search']:
@@ -81,11 +82,11 @@ ORDER BY brand.brand_count ASC");
 
 
 
-            $API->sendMessage($text_message['welcome']['general'], $user_id, $keyboard);
+            $core->sendMessage($text_message['welcome']['general'], $user_id, $keyboard);
         break;
 
     default:
-        $API->deleteMessage($user_id, $data['message_id']);
+        $core->deleteMessage($user_id, $data['message_id']);
         break;
 }
 
@@ -105,7 +106,7 @@ ORDER BY brand.brand_count ASC");
 //        $keyboard = new Keyboard('keyboard', false);
 //        $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $SQL_result);
 //
-//        $callback_result = $API->sendMessage($text_message['welcome'], $user_id, $keyboard);
+//        $callback_result = $core->sendMessage($text_message['welcome'], $user_id, $keyboard);
 //        $callback_result = json_decode($callback_result, true);
 //        $SQL->UPDATE('users', "message_id = '{$callback_result['result']['message_id']}'", "id = $user_id");
 //    break;
@@ -115,7 +116,7 @@ ORDER BY brand.brand_count ASC");
 //        $keyboard = new Keyboard('inline_keyboard', false);
 //        $keyboard = $keyboard->AUTO_CREATE('catalog_search', $text_keyboard, $SQL);
 //
-//        $API->sendMessage($text_message['welcome'], $user_id, $keyboard);
+//        $core->sendMessage($text_message['welcome'], $user_id, $keyboard);
 //        break;
 //
 //    case '/account':
@@ -123,19 +124,19 @@ ORDER BY brand.brand_count ASC");
 //
 //
 //        $message_id = $SQL->SELECT_FROM('message_id, phone_number', "users", "id = '$user_id'", NULL)->fetch_assoc();
-//        $API->deleteMessage($user_id, $data['message_id']);
-//        $API->deleteMessage($user_id, $message_id['message_id']);
+//        $core->deleteMessage($user_id, $data['message_id']);
+//        $core->deleteMessage($user_id, $message_id['message_id']);
 //        $keyboard = new Keyboard('keyboard', false);
 //        if ($message_id['phone_number']) {
 //            $keyboard = $keyboard->AUTO_CREATE('user_account', $text_keyboard, $SQL_result);
 //
-////            $API->editMessageText($text_message['welcome'] . '1', $user_id, 1040, NULL);
-//            $API->sendMessage($text_message['welcome'], $user_id, $keyboard);
+////            $core->editMessageText($text_message['welcome'] . '1', $user_id, 1040, NULL);
+//            $core->sendMessage($text_message['welcome'], $user_id, $keyboard);
 //        } else {
 //            $keyboard = $keyboard->AUTO_CREATE('main_menu', $text_keyboard, $SQL_result);
 //
-////            $API->editMessageText($text_message['welcome'] . '2', $user_id, $message_id['message_id'], NULL);
-//            $API->sendMessage($text_message['welcome'] . 'ошибка, авторизироваться снова', $user_id, $keyboard);
+////            $core->editMessageText($text_message['welcome'] . '2', $user_id, $message_id['message_id'], NULL);
+//            $core->sendMessage($text_message['welcome'] . 'ошибка, авторизироваться снова', $user_id, $keyboard);
 //        }
 //        break;
 //
@@ -144,7 +145,7 @@ ORDER BY brand.brand_count ASC");
 //        break;
 //
 //    default:
-////        $API->sendLocation($user_id, '47.9915952', '37.8940774');
+////        $core->sendLocation($user_id, '47.9915952', '37.8940774');
 //
 //        $result = $SQL->link()->query("SELECT brand.description AS 'Brand',
 //
@@ -164,7 +165,7 @@ ORDER BY brand.brand_count ASC");
 //
 //
 //
-//            $API->sendMessage($text_message['welcome'], $user_id, $keyboard);
+//            $core->sendMessage($text_message['welcome'], $user_id, $keyboard);
 //
 //        break;
 //}

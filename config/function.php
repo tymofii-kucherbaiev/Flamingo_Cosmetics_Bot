@@ -2,12 +2,18 @@
 class API
 {
     private string $url;
-
+    private string $user_id;
 
     public function __construct ($token)
     {
         $this->url = "https://api.telegram.org/bot$token/";
     }
+
+    public function user_id ($user_id): void
+    {
+        $this->user_id = $user_id;
+    }
+
 ///////////////////////////////////////////////////////////////////////
     public function curl ($method, $request_params): bool|string|array
     {
@@ -19,19 +25,25 @@ class API
         return $result;
     }
 
-    public function sendMessage ($text, $chat_id, $reply_markup): bool|array|string
+    public function sendMessage ($text, $reply_markup, $parse_mode): bool|array|string
     {
         if ($reply_markup == 'close')
             $request_params = array (
-                'chat_id' => $chat_id,
+                'chat_id' => $this->user_id,
                 'text' => $text,
                 'reply_markup' => json_encode(["hide_keyboard" => true])
             );
+        elseif ($parse_mode)
+            $request_params = array (
+                'chat_id' => $this->user_id,
+                'text' => $text,
+                'parse_mode' => $parse_mode,
+                'reply_markup' => $reply_markup
+            );
         else
             $request_params = array (
-                'chat_id' => $chat_id,
+                'chat_id' => $this->user_id,
                 'text' => $text,
-                'parse_mode' => 'MarkdownV2',
                 'reply_markup' => $reply_markup
             );
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
@@ -71,10 +83,10 @@ class API
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-    public function deleteMessage ($chat_id, $message_id): void
+    public function deleteMessage ($message_id): void
     {
         $request_params = array(
-            'chat_id' => $chat_id,
+            'chat_id' => $this->user_id,
             'message_id' => $message_id
         );
         $this->curl(method: __FUNCTION__, request_params: $request_params);
@@ -485,71 +497,7 @@ class SQL
     private function AUTO_CREATE (): void
     {
 
-        $this->CREATE_TABLE('users',
-            "`id` int(11) NOT NULL PRIMARY KEY,
-            `message_id` int(11) DEFAULT NULL,
-            `callback_id` int(11) DEFAULT NULL,
-            `username` varchar(255) DEFAULT NULL,
-            `first_name` varchar(255) NOT NULL,
-            `last_name` varchar(255) DEFAULT NULL,
-            `profile_name` varchar(255) DEFAULT NULL,
-            `phone_number` bigint(20) DEFAULT NULL,
-            `birthday` date DEFAULT NULL,
-            `sex` varchar(255) DEFAULT NULL,
-            `address` varchar(255) DEFAULT NULL,
-            `favorite` longtext,
-            `cart_product` mediumtext,
-            `cart_date` date DEFAULT NULL,
-            `role` varchar(255) NOT NULL DEFAULT 'viewer'");
 
-        $this->CREATE_TABLE('category',
-            "`id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-            `category` varchar(50) NOT NULL,
-            `count_product` int(11) DEFAULT NULL,
-            `count_characters` int(11) DEFAULT NULL,
-            UNIQUE KEY `category_UNIQUE` (`category`),
-            INDEX `category` (`category`)");
-
-        $this->CREATE_TABLE('brand',
-            "`id` INT (11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-            `brand` varchar(50) NOT NULL,
-            `count_product` int(11) DEFAULT NULL,
-            `count_characters` int(11) DEFAULT NULL,
-            UNIQUE KEY `brand_UNIQUE` (`brand`),
-            INDEX `brand` (`brand`)");
-
-        $this->CREATE_TABLE('title',
-            "`id` INT (11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-            `title` VARCHAR (150) NOT NULL,
-            INDEX `title` (`title`)");
-
-        $this->CREATE_TABLE('caption',
-            "`id` INT (11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-            `caption` VARCHAR (1000) NOT NULL,
-            INDEX `title` (`caption`)");
-
-        $this->CREATE_TABLE('country',
-            "`id` INT (11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-            `country` VARCHAR (50) NOT NULL,
-            INDEX `title` (`country`)");
-
-        $this->CREATE_TABLE('product',
-            "`vendor_code` bigint(20) NOT NULL PRIMARY KEY,
-            `title_id` INT (11) NOT NULL,
-            `caption_id` INT (11) NOT NULL,
-            `color` varchar(50) DEFAULT NULL,
-            `country_id` INT (11) DEFAULT NULL,
-            `price_old` int(11) DEFAULT NULL,
-            `price_new` int(11) DEFAULT NULL,
-            `image_id` varchar(150) DEFAULT NULL,
-            `category_id` int(11) DEFAULT NULL,
-            `brand_id` int(11) DEFAULT NULL,
-            `group_id` int(11) DEFAULT NULL,
-            `is_status` BOOLEAN DEFAULT TRUE,
-            FOREIGN KEY brand (brand_id) REFERENCES _brand_m205r1G6NHNs (id),
-            FOREIGN KEY category (category_id) REFERENCES _category_m205r1G6NHNs (id),
-            FOREIGN KEY title (title_id) REFERENCES _title_m205r1G6NHNs (id),
-            FOREIGN KEY caption (caption_id) REFERENCES _caption_m205r1G6NHNs (id)");
 
     }
 
