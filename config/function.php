@@ -1,47 +1,39 @@
 <?php
+
 class API
 {
     private string $url;
     private string $user_id;
 
-    public function __construct ($token)
+    public function __construct($token)
     {
         $this->url = "https://api.telegram.org/bot$token/";
     }
 
-    public function user_id ($user_id): void
+    public function user_id($user_id): void
     {
         $this->user_id = $user_id;
     }
 
 ///////////////////////////////////////////////////////////////////////
-    public function curl ($method, $request_params): bool|string|array
-    {
-        $ch = curl_init($this->url . $method . '?');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, ($request_params));
-        $result =  curl_exec($ch);
-        curl_close($ch);
-        return $result;
-    }
 
-    public function sendMessage ($text, $reply_markup, $parse_mode): bool|array|string
+    public function sendMessage($text, $reply_markup, $parse_mode): bool|array|string
     {
         if ($reply_markup == 'close')
-            $request_params = array (
+            $request_params = array(
                 'chat_id' => $this->user_id,
                 'text' => $text,
                 'reply_markup' => json_encode(["hide_keyboard" => true])
             );
         elseif ($parse_mode)
-            $request_params = array (
+            $request_params = array(
                 'chat_id' => $this->user_id,
                 'text' => $text,
                 'parse_mode' => $parse_mode,
                 'reply_markup' => $reply_markup
             );
         else
-            $request_params = array (
+            $request_params = array(
                 'chat_id' => $this->user_id,
                 'text' => $text,
                 'reply_markup' => $reply_markup
@@ -49,20 +41,29 @@ class API
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-    public function sendPhoto ($text, $chat_id, $reply_markup)
+    public function curl($method, $request_params): bool|string|array
     {
-        $request_params = array (
-            'chat_id' => $chat_id,
-//            'photo' => "https://i0.wp.com/dianomi-dn.com/wp-content/uploads/2022/08/590125b0-c982-11ec-80c9-9c8e99520657_b4e69b3b-e7e3-11ec-80ca-9c8e99520657.jpeg?fit=480%2C480&ssl=1",
-            'photo' => "AgACAgQAAxkDAAIHVWM1VVDKHDOtNwpTrMFJm-_6-YPQAAIjrzEbpxalURxUqDnu7r0gAQADAgADcwADKgQ",
+        $ch = curl_init($this->url . $method . '?');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, ($request_params));
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+
+    public function sendPhoto($text, $image, $reply_markup): bool|array|string
+    {
+        $request_params = array(
+            'chat_id' => $this->user_id,
+            'photo' => $image,
             'caption' => $text,
-            'parse_mode' => 'MarkdownV2',
+//            'parse_mode' => 'MarkdownV2',
             'reply_markup' => $reply_markup);
 
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-    public function answerCallbackQuery ($text, $show_alert, $callback_query_id): void
+    public function answerCallbackQuery($text, $show_alert, $callback_query_id): void
     {
         $request_params = array(
             'text' => $text,
@@ -72,7 +73,7 @@ class API
         $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-    public function editMessageText ($text, $chat_id, $message_id, $reply_markup): bool|array|string
+    public function editMessageText($text, $chat_id, $message_id, $reply_markup): bool|array|string
     {
         $request_params = array(
             'chat_id' => $chat_id,
@@ -83,7 +84,7 @@ class API
         return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-    public function deleteMessage ($message_id): void
+    public function deleteMessage($message_id): void
     {
         $request_params = array(
             'chat_id' => $this->user_id,
@@ -122,7 +123,7 @@ class Keyboard
     private string $keyboard_type;
 
 
-    public function __construct ($keyboard_type, $one_time_keyboard)
+    public function __construct($keyboard_type, $one_time_keyboard)
     {
         $this->keyboard_type = $keyboard_type;
         $this->keyboard = array($this->keyboard_type => array(),
@@ -130,41 +131,7 @@ class Keyboard
             'one_time_keyboard' => $one_time_keyboard);
     }
 
-    public function add ($keyboard_type, $text, $action, $type, $row, $col): void
-    {
-        switch ($keyboard_type) {
-            case 'request_contact':
-            case 'request_location':
-                $button =
-                    ["text" => $text,
-                        $keyboard_type => $type];
-
-                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
-                break;
-
-            case 'callback_data':
-                $button =
-                    ["text" => $text,
-                        $keyboard_type => "action:$action|type:$type"];
-
-                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
-                break;
-
-            default:
-                $button =
-                    ["text" => $text];
-
-                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
-                break;
-        }
-    }
-
-    public function get (): bool|string
-    {
-        return json_encode($this->keyboard);
-    }
-
-    public function auto_create ($keyboard, $text_keyboard, $sql_result, $action, $type): bool|string|null
+    public function auto_create($keyboard, $text_keyboard, $sql_result, $action, $type): bool|string|null
     {
         $result = NULL;
         switch ($keyboard) {
@@ -208,7 +175,104 @@ class Keyboard
         return $result;
     }
 
-    private function admin_main ($text_keyboard): bool|string
+    private function main_menu($text_keyboard, $sql_result): bool|string
+    {
+        $i = 0;
+        $col = 0;
+        $row = 0;
+
+        if ($sql_result['phone_number']) {
+            $this->add(NULL, $text_keyboard['main_search'], NULL, NULL, $row, $col);
+            $row++;
+        }
+
+        if ($sql_result['cart_product']) {
+            $i++;
+            $this->add(NULL, $text_keyboard['main_cart'], NULL, NULL, $row, $col);
+            $col++;
+        }
+
+        if ($sql_result['role'] == 'administrator') {
+            $i++;
+            $this->add(NULL, $text_keyboard['main_admin'], NULL, NULL, $row, $col);
+            $col++;
+        }
+
+        if ($sql_result['favorite']) {
+            $i++;
+            $this->add(NULL, $text_keyboard['main_favorite'], NULL, NULL, $row, $col);
+        }
+
+        if ($i != 0) $row++;
+
+        if ($sql_result['phone_number'])
+            $this->add(NULL, $text_keyboard['main_profile'], NULL, NULL, $row, 0);
+        else
+            $this->add('request_contact', $text_keyboard['main_login'], NULL, true, $row, 0);
+
+        $this->add(NULL, $text_keyboard['main_help'], NULL, NULL, $row, 1);
+        return $this->get();
+    }
+
+    public function add($keyboard_type, $text, $action, $type, $row, $col): void
+    {
+        switch ($keyboard_type) {
+            case 'request_contact':
+            case 'request_location':
+                $button =
+                    ["text" => $text,
+                        $keyboard_type => $type];
+
+                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
+                break;
+
+            case 'callback_data':
+                $button =
+                    ["text" => $text,
+                        $keyboard_type => "action:$action|type:$type"];
+
+                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
+                break;
+
+            default:
+                $button =
+                    ["text" => $text];
+
+                $this->keyboard[$this->keyboard_type][$row][$col] = $button;
+                break;
+        }
+    }
+
+    public function get(): bool|string
+    {
+        return json_encode($this->keyboard);
+    }
+
+    private function user_account($text_keyboard, $sql_result): bool|string
+    {
+        $this->add('callback_data', $text_keyboard['profile_history'], NULL, NULL, 0, 0);
+
+        if ($sql_result['profile_name'] == NULL)
+            $this->add('callback_data', $text_keyboard['profile_name_unknown'], NULL, NULL, 1, 0);
+        else
+            $this->add('callback_data', $text_keyboard['profile_name'], NULL, NULL, 1, 0);
+
+        if ($sql_result['sex'] == NULL)
+            $this->add('callback_data', $text_keyboard['profile_sex_unknown'], NULL, NULL, 1, 1);
+        else
+            $this->add('callback_data', $text_keyboard['profile_sex'], NULL, NULL, 1, 1);
+
+        if ($sql_result['birthday'] == NULL)
+            $this->add('callback_data', $text_keyboard['profile_birthday_unknown'], NULL, NULL, 1, 2);
+        else
+            $this->add('callback_data', $text_keyboard['profile_birthday'], NULL, NULL, 1, 2);
+
+        $this->add('callback_data', $text_keyboard['main_close'], 'close', NULL, 2, 0);
+
+        return $this->get();
+    }
+
+    private function admin_main($text_keyboard): bool|string
     {
         $this->add('callback_data', '🟢 Добавить 🟢', NULL, NULL, 0, 0);
         $this->add('callback_data', 'Товар', 'product_add', NULL, 1, 0);
@@ -222,34 +286,6 @@ class Keyboard
         $this->add('callback_data', 'Новые', 'new_order', NULL, 5, 0);
         $this->add('callback_data', 'Обработанные', 'history_order', NULL, 5, 1);
         $this->add('callback_data', 'Закрыть', 'close', NULL, 6, 0);
-        return $this->get();
-    }
-
-    private function admin_product_add ($text_keyboard): bool|string
-    {
-        $this->add('callback_data', '🔺', 'admin_back', NULL, 0, 0);
-        $this->add('callback_data', '3 шт.', 'admin_back', NULL, 0, 1);
-        $this->add('callback_data', '🔻', 'admin_back', NULL, 0, 2);
-        $this->add('callback_data', '⬅', 'admin_back', NULL, 1, 0);
-        $this->add('callback_data', '1/40', 'admin_back', NULL, 1, 1);
-        $this->add('callback_data', '➡', 'next', NULL, 1, 2);
-        return $this->get();
-    }
-
-    private function message_test ($text_keyboard, $action): bool|string
-    {
-        $this->add('callback_data', '⬅', $action, 'color_back', 0, 0);
-        $this->add('callback_data', 'Цвет: 010', 'admin_back', NULL, 0, 1);
-        $this->add('callback_data', '➡', $action, 'color_next', 0, 2);
-
-        $this->add('callback_data', '⭐', 'next', NULL, 1, 0);
-        $this->add('callback_data', '343 ₽', 'next', NULL, 1, 1);
-        $this->add('callback_data', '🛒', 'next', NULL, 1, 2);
-
-        $this->add('callback_data', '⬅', 'admin_back', NULL, 2, 0);
-        $this->add('callback_data', 'Страница 1 из 40', 'admin_back', NULL, 2, 1);
-        $this->add('callback_data', '➡', 'next', NULL, 2, 2);
-
         return $this->get();
     }
 
@@ -322,63 +358,48 @@ class Keyboard
 //        return $this->get();
 //    }
 
-    private function main_menu ($text_keyboard, $sql_result): bool|string
+    private function admin_product_add($text_keyboard): bool|string
     {
-        $i = 0; $col = 0; $row = 0;
-
-        if ($sql_result['phone_number']) {
-            $this->add(NULL, $text_keyboard['main_search'], NULL, NULL, $row, $col);
-            $row++;
-        }
-
-        if ($sql_result['cart_product']) {
-            $i++;
-            $this->add(NULL, $text_keyboard['main_cart'], NULL, NULL, $row, $col);
-            $col++;
-        }
-
-        if ($sql_result['role'] == 'administrator') {
-            $i++;
-            $this->add(NULL, $text_keyboard['main_admin'], NULL, NULL, $row, $col);
-            $col++;
-        }
-
-        if ($sql_result['favorite']) {
-            $i++;
-            $this->add(NULL, $text_keyboard['main_favorite'], NULL, NULL, $row, $col);
-        }
-
-        if ($i != 0) $row++;
-
-        if ($sql_result['phone_number'])
-            $this->add(NULL, $text_keyboard['main_profile'], NULL, NULL, $row, 0);
-        else
-            $this->add('request_contact', $text_keyboard['main_login'], NULL, true, $row, 0);
-
-        $this->add(NULL, $text_keyboard['main_help'], NULL, NULL, $row, 1);
+        $this->add('callback_data', '🔺', 'admin_back', NULL, 0, 0);
+        $this->add('callback_data', '3 шт.', 'admin_back', NULL, 0, 1);
+        $this->add('callback_data', '🔻', 'admin_back', NULL, 0, 2);
+        $this->add('callback_data', '⬅', 'admin_back', NULL, 1, 0);
+        $this->add('callback_data', '1/40', 'admin_back', NULL, 1, 1);
+        $this->add('callback_data', '➡', 'next', NULL, 1, 2);
         return $this->get();
     }
 
-    private function user_account ($text_keyboard, $sql_result): bool|string
+    private function message_test($text_keyboard, $action): bool|string
     {
-        $this->add('callback_data', $text_keyboard['profile_history'], NULL, NULL, 0, 0);
+        $this->add('callback_data', '⭐', 'next', NULL, 0, 0);
+        $this->add('callback_data', '343 ₽', 'next', NULL, 0, 1);
+        $this->add('callback_data', '🛒', 'next', NULL, 0, 2);
 
-        if ($sql_result['profile_name'] == NULL)
-            $this->add('callback_data', $text_keyboard['profile_name_unknown'], NULL, NULL, 1, 0);
-        else
-            $this->add('callback_data', $text_keyboard['profile_name'], NULL, NULL, 1, 0);
 
-        if ($sql_result['sex'] == NULL)
-            $this->add('callback_data', $text_keyboard['profile_sex_unknown'], NULL, NULL, 1, 1);
-        else
-            $this->add('callback_data', $text_keyboard['profile_sex'], NULL, NULL, 1, 1);
+        $this->add('callback_data', 'Описание', $action, 'color_back', 1, 0);
+//        $this->add('callback_data', 'Состав', $action, 'color_next', 1, 1);
 
-        if ($sql_result['birthday'] == NULL)
-            $this->add('callback_data', $text_keyboard['profile_birthday_unknown'], NULL, NULL, 1, 2);
-        else
-            $this->add('callback_data', $text_keyboard['profile_birthday'], NULL, NULL, 1, 2);
+        $this->add('callback_data', 'Страница 1 из 40', 'admin_back', NULL, 2, 0);
+        $this->add('callback_data', 'Цвет: 1 из 3', 'admin_back', NULL, 2, 1);
 
-        $this->add('callback_data', $text_keyboard['main_close'], 'close', NULL, 2, 0);
+        $this->add('callback_data', '⬅', 'admin_back', NULL, 3, 0);
+        $this->add('callback_data', '➡', 'admin_back', NULL, 3, 1);
+        $this->add('callback_data', '⬅', 'next', NULL, 3, 2);
+        $this->add('callback_data', '➡', 'admin_back', NULL, 3, 3);
+//        🔼🔽◀️➡️⬆️⬇️➡️
+
+
+//        $this->add('callback_data', '⬅', $action, 'color_back', 0, 0);
+//        $this->add('callback_data', 'Цвет: 030', 'admin_back', NULL, 0, 1);
+//        $this->add('callback_data', '➡', $action, 'color_next', 0, 2);
+//
+//        $this->add('callback_data', '⭐', 'next', NULL, 1, 0);
+//        $this->add('callback_data', '343 ₽', 'next', NULL, 1, 1);
+//        $this->add('callback_data', '🛒', 'next', NULL, 1, 2);
+//
+//        $this->add('callback_data', '⬅', 'admin_back', NULL, 2, 0);
+//        $this->add('callback_data', 'Страница 1 из 40', 'admin_back', NULL, 2, 1);
+//        $this->add('callback_data', '➡', 'next', NULL, 2, 2);
 
         return $this->get();
     }
@@ -392,7 +413,6 @@ class Keyboard
 //
 //        return $this->get();
 //    }
-
 
 
 //    private function catalog ($SQL_RESULT): bool|string
@@ -468,21 +488,16 @@ class SQL
     private string $DB_hostname;
     private string $DB_username;
     private string $DB_password;
-    private string $DB_keygen;
 
     private mysqli $DB_link;
 
-    private string $TABLE_NAME;
 
-
-
-    public function __construct ($DB_database, $DB_hostname, $DB_username, $DB_password, $DB_keygen)
+    public function __construct($DB_database, $DB_hostname, $DB_username, $DB_password)
     {
         $this->DB_database = $DB_database;
         $this->DB_hostname = $DB_hostname;
         $this->DB_username = $DB_username;
         $this->DB_password = $DB_password;
-        $this->DB_keygen = $DB_keygen;
 
         $this->DB_link = new mysqli(
             hostname: $this->DB_hostname,
@@ -491,62 +506,11 @@ class SQL
             database: $this->DB_database);
 
         $this->DB_link->query('SET CHARSET UTF8');
-        $this->AUTO_CREATE();
     }
 
-    private function AUTO_CREATE (): void
+    public function INSERT_INTO($TABLE_NAME, $COLUMN, $VALUE): void
     {
-
-
-
-    }
-
-    private function SHOW_TABLES (): bool|array|null
-    {
-        $result = $this->DB_link->query("SHOW TABLES FROM `$this->DB_database` LIKE '$this->TABLE_NAME'");
-        return $result->fetch_array();
-    }
-
-    public function link (): mysqli
-    {
-        return $this->DB_link;
-    }
-
-    public function CREATE_TABLE ($TABLE_NAME, $PARAMS): void
-    {
-        $this->TABLE_NAME = $TABLE_NAME . '_' . $this->DB_keygen;
-        if (!$this->SHOW_TABLES()) {
-            $this->DB_link->query("CREATE TABLE `$this->DB_database`.`$this->TABLE_NAME` 
-            ($PARAMS) ENGINE=MyISAM DEFAULT CHARSET=utf8");
-        }
-    }
-
-    public function INSERT_INTO ($TABLE_NAME, $COLUMN, $VALUE): void
-    {
-        $TABLE_NAME = $TABLE_NAME . '_' . $this->DB_keygen;
         $this->DB_link->query("INSERT INTO $TABLE_NAME ($COLUMN) VALUES ($VALUE)");
 
-    }
-
-    public function SELECT_FROM ($SELECT, $FROM, $WHERE, $ORDER_BY): bool|array|null
-    {
-        $TABLE_NAME = $FROM . '_' . $this->DB_keygen;
-        if ($WHERE)
-            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` WHERE $WHERE")->fetch_assoc();
-        elseif ($ORDER_BY)
-            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME` ORDER BY $ORDER_BY")->fetch_assoc();
-        else
-            return $this->DB_link->query("SELECT $SELECT FROM `$TABLE_NAME`")->fetch_assoc();
-    }
-
-    public function UPDATE ($TABLE_NAME, $SET, $WHERE): bool|mysqli_result
-    {
-        $TABLE_NAME = $TABLE_NAME . '_' . $this->DB_keygen;
-        return $this->DB_link->query("UPDATE $TABLE_NAME SET $SET WHERE $WHERE");
-    }
-
-    public function connect_close (): void
-    {
-        $this->DB_link->close();
     }
 }

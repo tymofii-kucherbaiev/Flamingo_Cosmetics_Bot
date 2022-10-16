@@ -1,24 +1,34 @@
 <?php
 /**
- * @var $data
- * @var $SQL
- * @var $core
- * @var $user_id
- * @var $user_username
- * @var $user_first_name
- * @var $user_last_name
- * @var $text_keyboard
- * @var $text_message
  * @var $sql_result_user
- *
- *
  * @var $mysqli
+ * @var $core API
+ * @var $data
+ * @var $text_message
+ * @var $text_keyboard
  */
+
+switch ($data['text']) {
+    case '/start':
+        $core->deleteMessage($data['message_id']);
+
+
+        break;
+
+    case '':
+
+        break;
+
+}
+
+
+
+
 
 switch ($data['text']) {
     case $text_keyboard['main_admin']:
         if ($sql_result_user['role'] == 'administrator') {
-            $core->deleteMessage($user_id, $data['message_id']);
+            $core->deleteMessage($data['message_id']);
             $keyboard = new Keyboard('inline_keyboard', false);
             $keyboard = $keyboard->auto_create('admin_main', $text_keyboard, $sql_result_user, NULL, NULL);
 
@@ -31,7 +41,7 @@ switch ($data['text']) {
         break;
 
     case '/start':
-        $core->deleteMessage($user_id, $data['message_id']);
+        $core->deleteMessage($data['message_id']);
         $keyboard = new Keyboard('keyboard', false);
         $keyboard = $keyboard->auto_create('main_menu', $text_keyboard, $sql_result_user, NULL, NULL);
 
@@ -39,11 +49,7 @@ switch ($data['text']) {
         else $message = $text_message['welcome']['no_authorize'];
 
         $callback_sendMessage = json_decode(
-            $core->sendMessage(
-                $message,
-                $keyboard,
-                NULL
-            ), true);
+            $core->sendMessage($message, $keyboard, NULL), true);
         $mysqli->query("CALL PC_update_user('message_id', '{$callback_sendMessage['result']['message_id']}', '$user_id')");
         $core->deleteMessage($sql_result_user['message_id']);
         $core->deleteMessage($sql_result_user['callback_id']);
@@ -51,20 +57,19 @@ switch ($data['text']) {
 
     case $text_keyboard['main_profile']:
     case '/account':
-        $core->deleteMessage($user_id, $data['message_id']);
+        $core->deleteMessage($data['message_id']);
         $keyboard = new Keyboard('inline_keyboard', false);
-        $keyboard = $keyboard->AUTO_CREATE('user_account', $text_keyboard, $sql_result);
+        $keyboard = $keyboard->auto_create('user_account', $text_keyboard, $sql_result_user, NULL, NULL);
 
-        $callback_sendMessage = $core->sendMessage($text_message['welcome'], $user_id, $keyboard);
-        $callback_sendMessage = json_decode($callback_sendMessage, true);
+        $callback_sendMessage = json_decode(
+            $core->sendMessage($text_message['welcome'], $keyboard, NULL), true);
         $SQL->UPDATE('users', "callback_id = '{$callback_sendMessage['result']['message_id']}'", "id = $user_id");
-//        $core->deleteMessage($user_id, $sql_result['message_id']);
-        $core->deleteMessage($user_id, $sql_result['callback_id']);
+        $core->deleteMessage($sql_result_user['callback_id']);
         break;
 
     case $text_keyboard['main_search']:
     case '/catalog':
-            $result = $SQL->link()->query("SELECT brand.description AS 'Brand',
+        $result = $SQL->link()->query("SELECT brand.description AS 'Brand',
 
 (SELECT GROUP_CONCAT(category.description ORDER BY category.category_count ASC SEPARATOR ', ')
 FROM category, brand_category
@@ -81,8 +86,7 @@ ORDER BY brand.brand_count ASC");
         $keyboard = $keyboard->AUTO_CREATE('test', $text_keyboard, $result);
 
 
-
-            $core->sendMessage($text_message['welcome']['general'], $user_id, $keyboard);
+        $core->sendMessage($text_message['welcome']['general'], $user_id, $keyboard);
         break;
 
     default:

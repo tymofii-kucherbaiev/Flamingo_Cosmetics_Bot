@@ -7,9 +7,15 @@ if (file_get_contents('php://input')) {
     $sql_username = 'mn469049_db';
     $sql_password = 'jPWQQ8U9';
 
-    $mysqli = new PDO("mysql:host=$sql_hostname;dbname=$sql_database", $sql_username, $sql_password);
+    $options = array(
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    );
+
+    $mysqli = new PDO("mysql:host=$sql_hostname;dbname=$sql_database", $sql_username, $sql_password, $options);
 
     $core = new API('5484985114:AAEhGnuPiLBzTGlxYX8wrIdYgoxlxGDXKg0');
+
 
     $text = json_decode(file_get_contents('./config/text.json'), true)['content'];
 

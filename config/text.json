@@ -3,6 +3,26 @@
   "version": "0.0.1",
   "last_date_update": "12.09.2022",
   "content": {
+    "currency": {
+      "rub": "₽",
+      "uah": "₴"
+    },
+    "keyboard": {
+      "main": {
+
+      }
+    },
+    "message":{
+      "authorize": {
+        "new_user": "",
+        "complete": ""
+      }
+    }
+  },
+
+
+
+  "content_2": {
     "currency": "₽",
     "keyboard": {
       "main_back": "Главное меню",
