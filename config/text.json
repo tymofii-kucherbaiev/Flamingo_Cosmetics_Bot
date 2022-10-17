@@ -3,25 +3,29 @@
   "version": "0.0.1",
   "last_date_update": "12.09.2022",
   "content": {
-    "currency": {
-      "rub": "₽",
-      "uah": "₴"
-    },
+    "currency": "₽",
     "keyboard": {
       "main": {
-
+        "search": "Найти товар",
+        "help": "Помощь",
+        "admin": "Управление",
+        "favorite": "Избранное",
+        "cart": "Корзина",
+        "login": "⚠ Регицстрация ⚠",
+        "profile": "Мой аккаунт"
+      },
+      "profile": {
+      },
+      "product": {
       }
     },
-    "message":{
-      "authorize": {
-        "new_user": "",
-        "complete": ""
-      }
-    }
+    "command": {
+      "start": "/start"
+    },
+      "complete": ", спасибо за регистрацию!\nХорошего дня и удачных покупок!",
+    "new_user": "Добро пожаловать!\n\nПожалуйста пройдите регистрацию.",
+    "welcome": ", добро пожаловать!"
   },
-
-
-
   "content_2": {
     "currency": "₽",
     "keyboard": {
@@ -54,7 +58,6 @@
         "authorize": ", спасибо за регистрацию!\nХорошего дня и удачных покупок!",
         "general": ", добро пожаловать!"
       },
-
       "welcome_authorize_user": "Добро пожаловать: ",
       "welcome_authorize_caption": "теперь ты можешь пользоваться всеми возможностями нашего магазина."
     }
