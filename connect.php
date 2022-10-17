@@ -40,8 +40,10 @@ if (file_get_contents('php://input')) {
 
     $sql_result = $mysqli->query("CALL select_user($user_id)")->fetch();
 
-    if (!$sql_result)
+    if (!$sql_result) {
         $sql_users = $mysqli->query("CALL add_new_user($user_id, '$user_username', '$user_first_name', '$user_last_name')");
+        $sql_result = $mysqli->query("CALL select_user($user_id)")->fetch();
+    }
 
     if (array_key_exists('contact', $data)) {
         if ($data['reply_to_message']['text'] == $text_filling['new_user']) {

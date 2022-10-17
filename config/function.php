@@ -15,15 +15,17 @@ class API
         $this->chat_id = $chat_id;
     }
 
-///////////////////////////////////////////////////////////////////////
-
     public function sendMessage($text, $reply_markup, $parse_mode): bool|array|string
     {
         if ($reply_markup == 'close')
             $request_params = array(
                 'chat_id' => $this->chat_id,
                 'text' => $text,
-                'reply_markup' => json_encode(["hide_keyboard" => true])
+                'reply_markup' => json_encode([
+//                    "hide_keyboard" => true,
+//                    "one_time_keyboard" => false,
+                    "remove_keyboard" => true
+                ])
             );
         elseif ($parse_mode)
             $request_params = array(
@@ -155,6 +157,10 @@ class Keyboard
             case 'main_menu':
                 $result = $this->main_menu($text_filling, $mysqli);
                 break;
+
+            case 'search_menu':
+                $result = $this->search_menu($text_filling);
+                break;
         }
         return $result;
     }
@@ -195,6 +201,15 @@ class Keyboard
             $this->add('request_contact', $text_filling['keyboard']['main']['login'], NULL, true, $row, 0);
 
         $this->add(NULL, $text_filling['keyboard']['main']['help'], NULL, NULL, $row, 1);
+        return $this->get();
+    }
+
+    private function search_menu ($text_filling): bool|string
+    {
+        $this->add('callback_data', $text_filling['keyboard']['search']['brand'], NULL, NULL, 0, 0);
+        $this->add('callback_data', $text_filling['keyboard']['search']['category'], NULL, NULL, 0, 1);
+        $this->add('callback_data', $text_filling['keyboard']['search']['list'], NULL, NULL, 1, 0);
+
         return $this->get();
     }
 

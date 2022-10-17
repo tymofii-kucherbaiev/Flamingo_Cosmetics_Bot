@@ -24,10 +24,21 @@ switch ($data['text']) {
         $core->deleteMessage($sql_result['callback_id']);
         break;
 
-    case '':
+    case $text_filling['command']['search']:
+    case $text_filling['keyboard']['main']['search']:
+        $core->deleteMessage($data['message_id']);
+        $keyboard = new Keyboard('inline_keyboard', false);
+        $keyboard = $keyboard->create('search_menu', $text_filling, $sql_result, NULL, NULL);
+
+
+        $callback = json_decode($core->sendMessage($text_filling['search'], $keyboard, NULL), true);
+        $mysqli->query("CALL PC_update_user('callback_id', '{$callback['result']['message_id']}', '$user_id')");
 
         break;
 
+    default:
+
+        break;
 }
 
 
