@@ -24,6 +24,16 @@
       "product": {
       }
     },
+    "callback_data": {
+      "action": {
+        "product_brand": "product_brand",
+        "product_category": "product_category",
+        "product_list": "product_list"
+      },
+      "type": {
+
+      }
+    },
     "command": {
       "start": "/start",
       "search": "/search"

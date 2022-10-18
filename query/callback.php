@@ -1,25 +1,33 @@
 <?php
 /**
- * @var $data
- * @var $SQL
- * @var $core
- * @var $user_id
- * @var $user_username
- * @var $user_first_name
- * @var $user_last_name
- * @var $text_keyboard
- * @var $text_message
- * @var $sql_result
- * @var $action
- * @var $sql_result_user
- * @var $mysqli
+ * @var $mysqli mysqli_result
  * @var $core API
- * @var $text_filling
- * @var $type
+ * @var $text_filling array
+ * @var $action string
+ * @var $type string
+ * @var $user_id string
+ * @var $sql_result mysqli_result
  */
 
+switch ($action) {
+    case $text_filling['callback_data']['action']['product_brand']:
 
 
+
+        break;
+
+    case $text_filling['callback_data']['action']['product_category']:
+
+
+
+        break;
+
+    case $text_filling['callback_data']['action']['product_list']:
+
+
+
+        break;
+}
 
 
 
@@ -105,9 +113,6 @@
 ////        $core->editMessageText($data['message']['message_id'], $data['photo'][2]['file_id'], $keyboard);
 //        break;
 //}
-
-
-
 
 
 //$result = $SQL->link()->query("SELECT brand.description AS 'Brand',

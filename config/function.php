@@ -204,15 +204,6 @@ class Keyboard
         return $this->get();
     }
 
-    private function search_menu ($text_filling): bool|string
-    {
-        $this->add('callback_data', $text_filling['keyboard']['search']['brand'], 'product_brand', NULL, 0, 0);
-        $this->add('callback_data', $text_filling['keyboard']['search']['category'], 'product_category', NULL, 0, 1);
-        $this->add('callback_data', $text_filling['keyboard']['search']['list'], 'product_list', NULL, 1, 0);
-
-        return $this->get();
-    }
-
     private function add($keyboard_type, $text, $action, $type, $row, $col): void
     {
         switch ($keyboard_type) {
@@ -245,6 +236,20 @@ class Keyboard
     public function get(): bool|string
     {
         return json_encode($this->keyboard);
+    }
+
+    private function search_menu($text_filling): bool|string
+    {
+        $this->add('callback_data', $text_filling['keyboard']['search']['brand'],
+            $text_filling['callback_data']['action']['product_brand'], NULL, 0, 0);
+
+        $this->add('callback_data', $text_filling['keyboard']['search']['category'],
+            $text_filling['callback_data']['action']['product_category'], NULL, 0, 1);
+
+        $this->add('callback_data', $text_filling['keyboard']['search']['list'],
+            $text_filling['callback_data']['action']['product_list'], NULL, 1, 0);
+
+        return $this->get();
     }
 
 

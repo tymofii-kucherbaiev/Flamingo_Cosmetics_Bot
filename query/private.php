@@ -5,7 +5,7 @@
  * @var $core API
  * @var $data
  * @var $user_id integer
- * @var $text_filling
+ * @var $text_filling array
  */
 
 switch ($data['text']) {
