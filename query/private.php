@@ -33,7 +33,7 @@ switch ($data['text']) {
 
         $callback = json_decode($core->sendMessage($text_filling['search'], $keyboard, NULL), true);
         $mysqli->query("CALL PC_update_user('callback_id', '{$callback['result']['message_id']}', '$user_id')");
-
+        $core->deleteMessage($sql_result['callback_id']);
         break;
 
     default:

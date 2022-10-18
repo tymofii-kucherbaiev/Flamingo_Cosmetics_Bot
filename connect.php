@@ -1,5 +1,7 @@
 <?php
 if (file_get_contents('php://input')) {
+
+    file_put_contents('json.json', file_get_contents('php://input'));
     require './config/function.php';
 
     $database_option = [
