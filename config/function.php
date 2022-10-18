@@ -206,9 +206,9 @@ class Keyboard
 
     private function search_menu ($text_filling): bool|string
     {
-        $this->add('callback_data', $text_filling['keyboard']['search']['brand'], NULL, NULL, 0, 0);
-        $this->add('callback_data', $text_filling['keyboard']['search']['category'], NULL, NULL, 0, 1);
-        $this->add('callback_data', $text_filling['keyboard']['search']['list'], NULL, NULL, 1, 0);
+        $this->add('callback_data', $text_filling['keyboard']['search']['brand'], 'product_brand', NULL, 0, 0);
+        $this->add('callback_data', $text_filling['keyboard']['search']['category'], 'product_category', NULL, 0, 1);
+        $this->add('callback_data', $text_filling['keyboard']['search']['list'], 'product_list', NULL, 1, 0);
 
         return $this->get();
     }

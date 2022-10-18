@@ -40,19 +40,15 @@ if (file_get_contents('php://input')) {
 
     $core->chat_id($data['from']['id']);
 
-    $sql_result = $mysqli->query("CALL select_user($user_id)")->fetch();
-
-    if (!$sql_result) {
-        $sql_users = $mysqli->query("CALL add_new_user($user_id, '$user_username', '$user_first_name', '$user_last_name')");
-        $sql_result = $mysqli->query("CALL select_user($user_id)")->fetch();
-    }
+    $sql_result = $mysqli->query("CALL PC_add_user($user_id, '$user_username', '$user_first_name', '$user_last_name')")->fetch();
 
     if (array_key_exists('contact', $data)) {
         if ($data['reply_to_message']['text'] == $text_filling['new_user']) {
-            $core->deleteMessage($data['message_id']);
-            $mysqli->query("CALL PC_update_user('phone_number', '{$data['contact']['phone_number']}', '$user_id')");
 
-            $sql_result = $mysqli->query("CALL select_user($user_id)")->fetch();
+            $core->deleteMessage($data['message_id']);
+
+            $sql_result = $mysqli->query("CALL PC_update_user('phone_number', '{$data['contact']['phone_number']}', '$user_id')")->fetch();
+
 
             $keyboard = new Keyboard('keyboard', false);
             $keyboard = $keyboard->create('main_menu', $text_filling, $sql_result, NULL, NULL);
