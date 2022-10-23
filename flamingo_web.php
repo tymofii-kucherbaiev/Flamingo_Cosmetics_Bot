@@ -19,12 +19,7 @@ $options = array(
 $mysqli = new PDO("mysql:host=$sql_hostname;dbname=$sql_database", $sql_username, $sql_password, $options);
 ####################################################################################################################################
 $urls = array(
-    'https://dianomi-dn.com/product-category/olivia-valera/makijazh-glaz/',
-    'https://dianomi-dn.com/product-category/olivia-valera/makijazh-gub-3/',
-    'https://dianomi-dn.com/product-category/olivia-valera/makijazh-lica-3/',
-    '',
-    '',
-    '',
+    'https://dianomi-dn.com/product-category/catrice/karandashi-dlja-glaz-3/',
     '',
     '',
     '',

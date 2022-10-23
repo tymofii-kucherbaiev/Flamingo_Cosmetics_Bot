@@ -1,33 +1,50 @@
 <?php
 /**
  * @var $mysqli mysqli_result
+ * @var $mysqli_result_users mysqli_result
  * @var $core API
+ * @var $keyboard keyboard
  * @var $text_filling array
  * @var $action string
  * @var $type string
  * @var $user_id string
- * @var $sql_result mysqli_result
  */
 
 switch ($action) {
     case $text_filling['callback_data']['action']['product_brand']:
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $keyboard->callback_data_action = 'brand';
 
-
-
+        $core->editMessageText($text_filling['callback_data']['product_brand'], $mysqli_result_users['callback_id'], $keyboard->catalog());
         break;
 
     case $text_filling['callback_data']['action']['product_category']:
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $keyboard->callback_data_action = 'category';
 
-
-
+        $core->editMessageText($text_filling['callback_data']['product_category'], $mysqli_result_users['callback_id'], $keyboard->catalog());
         break;
 
     case $text_filling['callback_data']['action']['product_list']:
 
 
+        break;
 
+        ##################################################
+
+    case $text_filling['callback_data']['action']['back_main_search']:
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $core->editMessageText($text_filling['search'], $mysqli_result_users['callback_id'], $keyboard->search_menu());
         break;
 }
+
+
+//
+//$keyboard = new keyboard('keyboard', false, $text_filling, $mysqli_result_users);
+//$keyboard = $keyboard->create('main_menu', NULL, NULL);
+//
+////$core->deleteMessage($mysqli_result_users['message_id']);
+//file_put_contents('error.json', $core->editMessageText('as', $mysqli_result_users['message_id'], $keyboard));
 
 
 
@@ -35,7 +52,7 @@ switch ($action) {
 //switch ($action) {
 //    case 'close':
 //        $core->deleteMessage($data['message_id']);
-//        $keyboard = new Keyboard('keyboard', false);
+//        $keyboard = new keyboard('keyboard', false);
 //        $keyboard = $keyboard->auto_create('main_menu', $text_keyboard, $sql_result_user, NULL, NULL);
 //
 //        if ($sql_result_user['phone_number'])
@@ -54,7 +71,7 @@ switch ($action) {
 //
 //    case 'product_add':
 //
-//        $keyboard = new Keyboard('inline_keyboard', false);
+//        $keyboard = new keyboard('inline_keyboard', false);
 //        $keyboard = $keyboard->AUTO_CREATE('admin_product_add', $text_keyboard, $sql_result);
 //
 //        $core->editMessageText('Придумайте название', $user_id, $sql_result['callback_id'], $keyboard);
@@ -103,7 +120,7 @@ switch ($action) {
 //############################################################################################################################
 //
 //
-//        $keyboard = new Keyboard('inline_keyboard', false);
+//        $keyboard = new keyboard('inline_keyboard', false);
 //
 //        $keyboard = $keyboard->auto_create('product_card', $text_filling, $mysqli_result, null, $product_card);
 //
@@ -128,7 +145,7 @@ switch ($action) {
 //GROUP BY brand.description
 //ORDER BY brand.brand_count ASC");
 //
-//$keyboard = new Keyboard('inline_keyboard', false);
+//$keyboard = new keyboard('inline_keyboard', false);
 //$keyboard = $keyboard->AUTO_CREATE('test_2', $data['data'], $result);
 
 
