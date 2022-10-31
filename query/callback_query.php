@@ -11,35 +11,51 @@
  */
 
 switch ($action) {
-    case $text_filling['callback_data']['action']['product_brand']:
+    case 'search_brand':
         $keyboard->keyboard_type = 'inline_keyboard';
-        $keyboard->callback_data_action = 'brand';
+        $keyboard->callback_data_action = 'product_brand';
+        $keyboard->callback_data_type = 'brand';
 
-        $core->editMessageText($text_filling['callback_data']['product_brand'], $mysqli_result_users['callback_id'], $keyboard->catalog());
+        $core->editMessageText($text_filling['callback_data']['search_brand'],
+            $mysqli_result_users['callback_id'], $keyboard->search());
         break;
 
-    case $text_filling['callback_data']['action']['product_category']:
+    case 'search_category':
         $keyboard->keyboard_type = 'inline_keyboard';
-        $keyboard->callback_data_action = 'category';
+        $keyboard->callback_data_action = 'product_category';
+        $keyboard->callback_data_type = 'category';
 
-        $core->editMessageText($text_filling['callback_data']['product_category'], $mysqli_result_users['callback_id'], $keyboard->catalog());
+        $core->editMessageText($text_filling['callback_data']['search_category'],
+            $mysqli_result_users['callback_id'], $keyboard->search());
         break;
 
-    case $text_filling['callback_data']['action']['product_list']:
+    case 'search_list':
+
+
+        break;
+
+    case 'product_brand':
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $keyboard->callback_data_type = $type;
+
+
+        $core->editMessageText($text_filling['callback_data']['product_brand'],
+            $mysqli_result_users['callback_id'], $keyboard->product());
+
+
 
 
         break;
 
         ##################################################
 
-    case $text_filling['callback_data']['action']['back_main_search']:
+    case 'back_main_search':
         $keyboard->keyboard_type = 'inline_keyboard';
         $core->editMessageText($text_filling['search'], $mysqli_result_users['callback_id'], $keyboard->search_menu());
         break;
 }
 
 
-//
 //$keyboard = new keyboard('keyboard', false, $text_filling, $mysqli_result_users);
 //$keyboard = $keyboard->create('main_menu', NULL, NULL);
 //

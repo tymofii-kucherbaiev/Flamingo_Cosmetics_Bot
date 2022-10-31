@@ -6,6 +6,8 @@ class API
     public string|null $parse_mode = null;
     private string $url;
 
+    public bool $protect_content = FALSE;
+
     public function __construct($token)
     {
         $this->url = "https://api.telegram.org/bot$token/";
@@ -60,7 +62,7 @@ class API
             'chat_id' => $this->user_id,
             'photo' => $image,
             'caption' => $text,
-//            'parse_mode' => 'MarkdownV2',
+            'protect_content' => $this->protect_content,
             'reply_markup' => $reply_markup);
 
         return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
@@ -180,6 +182,43 @@ class keyboard
         ];
     }
 
+    public function epicentrk_product(): bool|string
+    {
+        $this->add('callback_data', "Товара нет!", 'not_available', $this->mysqli_result['vendor_code'], 0, 0);
+        $this->add('callback_data', "Изменить даты", 'change_dates', $this->mysqli_result['vendor_code'], 0, 1);
+        $this->add('callback_data', "Осталось дней: " . $this->mysqli_result['days_left'], NULL, NULL, 1, 0);
+        $this->add('callback_data', "Закрыть", 'close', NULL, 1, 0);
+
+        return json_encode($this->keyboard);
+    }
+
+    public function epicentrk_main_menu(): bool|string
+    {
+        if ($this->mysqli_result['is_active'] === 1) {
+            $this->add('callback_data', "🪪 Мой бейдж 🪪", 'card_service_id', NULL, 0, 0);
+            $this->add('callback_data', "Контроль сроков годности", NULL, NULL, 1, 0);
+            $this->add('callback_data', "ОПТ 3% [от 1 тыс]", 'card_opt_3', NULL, 2, 0);
+            $this->add('callback_data', "ОПТ 5% [от 3 тыс]", 'card_opt_5', NULL, 2, 1);
+            $this->add('callback_data', "ОПТ 10% [от 5 тыс]", 'card_opt_10', NULL, 3, 0);
+            $this->add('callback_data', "ОПТ 15% [от 10 тыс]", 'card_opt_15', NULL, 3, 1);
+            $this->add('callback_data', "ОПТ 20% [от 15 тыс]", 'card_opt_20', NULL, 4, 0);
+            $this->add('callback_data', "ОСББ 15%", 'card_osbb', NULL, 5, 0);
+        }
+        else
+            $this->add('callback_data', "⚠ Запросить доступ ⚠", NULL, NULL, 0, 0);
+
+
+
+
+        return json_encode($this->keyboard);
+    }
+
+    public function close(): bool|string
+    {
+        $this->add('callback_data', "Закрыть", 'close', NULL, 0, 0);
+        return json_encode($this->keyboard);
+    }
+
     private function add($keyboard_data_type, $text, $action, $type, $row, $col): void
     {
         switch ($keyboard_data_type) {
@@ -224,18 +263,6 @@ class keyboard
                 break;
         }
     }
-
-    public function epicentrk_product(): bool|string
-    {
-        $this->add('callback_data', "Товара нет!", 'not_available', $this->mysqli_result['vendor_code'], 0, 0);
-        $this->add('callback_data', "Изменить даты", 'change_dates', $this->mysqli_result['vendor_code'], 0, 1);
-        $this->add('callback_data', "Осталось дней: " . $this->mysqli_result['days_left'], NULL, NULL, 1, 0);
-        $this->add('callback_data', "Закрыть", 'close', NULL, 1, 0);
-
-        return json_encode($this->keyboard);
-    }
-
-
 
     public function epicentrk_product_date(): bool|string
     {
@@ -290,13 +317,13 @@ class keyboard
     public function search_menu(): bool|string
     {
         $this->add('callback_data', $this->text_filling['keyboard']['search']['brand'],
-            $this->text_filling['callback_data']['action']['product_brand'], NULL, 0, 0);
+            'search_brand', NULL, 0, 0);
 
         $this->add('callback_data', $this->text_filling['keyboard']['search']['category'],
-            $this->text_filling['callback_data']['action']['product_category'], NULL, 0, 1);
+            'search_category', NULL, 0, 1);
 
         $this->add('callback_data', $this->text_filling['keyboard']['search']['list'],
-            $this->text_filling['callback_data']['action']['product_list'], NULL, 1, 0);
+            'search_list', NULL, 1, 0);
 
         return json_encode($this->keyboard);
     }
@@ -321,10 +348,15 @@ class keyboard
         return json_encode($this->keyboard);
     }
 
-    public function catalog(): bool|string
+    public function search(): bool|string
     {
-
-        $sql_result = $this->mysqli_link->query("SELECT * FROM $this->callback_data_action ORDER BY $this->callback_data_action.count_characters ASC");
+        $sql_result = $this->mysqli_link->query("
+SELECT product.{$this->callback_data_type}_id,
+       $this->callback_data_type.description
+FROM product
+         INNER JOIN $this->callback_data_type ON ($this->callback_data_type.id = product.{$this->callback_data_type}_id)
+GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_characters ASC");
+        
         $column = 0;
         $row = 0;
         $count = 0;
@@ -334,16 +366,14 @@ class keyboard
             $num_rows++;
             if (iconv_strlen($sql_value['description']) <= 11) {
                 $count++;
-                $this->add('callback_data',
-                    $sql_value['description'],
+                $this->add('callback_data', $sql_value['description'],
                     $this->callback_data_action, $sql_value['id'], $row, $column);
                 $column++;
             } else {
                 if ($count >= 1) $row++;
                 $column = 0;
                 $count = 0;
-                $this->add('callback_data',
-                    $sql_value['description'],
+                $this->add('callback_data', $sql_value['description'],
                     $this->callback_data_action, $sql_value['id'], $row, $column);
                 $row++;
             }
@@ -353,12 +383,19 @@ class keyboard
                 $row++;
             }
         }
-        $this->add('callback_data',
-            $this->text_filling['callback_data']['keyboard']['back_main_search'],
+
+        $this->add('callback_data', 'Назад',
             'back_main_search', NULL, $row, 0);
+
         return json_encode($this->keyboard);
     }
 
+    public function product(): bool|string
+    {
+//        $sql_result = $this->mysqli_link->query("SELECT * FROM product WHERE brand_id LIKE $this->callback_data_type");
+
+        return json_encode($this->keyboard);
+    }
 
     /*
 

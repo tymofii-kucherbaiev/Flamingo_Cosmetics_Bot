@@ -28,17 +28,8 @@
       "keyboard": {
         "back_main_search": "Вернуться назад"
       },
-      "action": {
-        "product_brand": "product_brand",
-        "product_category": "product_category",
-        "product_list": "product_list",
-        "back_main_search": "back_main_search"
-      },
-      "type": {
-
-      },
-      "product_brand": "выберите бренд",
-      "product_category": "выберите категорию"
+      "search_brand": "выберите бренд",
+      "search_category": "выберите категорию"
     },
     "command": {
       "start": "/start",

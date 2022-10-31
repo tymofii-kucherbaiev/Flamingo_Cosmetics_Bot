@@ -19,9 +19,9 @@ $options = array(
 $mysqli = new PDO("mysql:host=$sql_hostname;dbname=$sql_database", $sql_username, $sql_password, $options);
 ####################################################################################################################################
 $urls = array(
-    'https://dianomi-dn.com/product-category/catrice/karandashi-dlja-glaz-3/',
-    '',
-    '',
+    'https://dianomi-dn.com/product-category/olivia-valera/makijazh-glaz/',
+    'https://dianomi-dn.com/product-category/olivia-valera/makijazh-gub-3/',
+    'https://dianomi-dn.com/product-category/olivia-valera/makijazh-lica-3/',
     '',
     ''
 );
@@ -45,12 +45,12 @@ foreach ($urls as $url) {
 
         $image = $preg_product[1];
         $brand = $preg_product[2];
-        $title = str_replace('&#038;', '&', str_replace('&#8217;', "`", $preg_product[3]));
+        $title = str_replace('&#8212;', '—',  str_replace('&#038;', '&', str_replace('&#8217;', "`", $preg_product[3])));
         $price = $preg_product[4];
         $vendor_code = $preg_product[5];
         $vendor_code_3 = substr($vendor_code, 0, 3);
         $category = $preg_product[6];
-        $caption = str_replace('&#038;', '&', str_replace('&#8217;', "`", $preg_product[7]));
+        $caption = str_replace('&#8212;', '—',  str_replace('&#038;', '&', str_replace('&#8217;', "`", $preg_product[3])));
 
         $category_count = iconv_strlen($category);
         $brand_count = iconv_strlen($brand);
