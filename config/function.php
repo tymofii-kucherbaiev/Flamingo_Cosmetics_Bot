@@ -185,17 +185,17 @@ class keyboard
     public function epicentrk_main_menu(): bool|string
     {
         if ($this->mysqli_result['is_active'] === 1) {
-            $this->add('callback_data', "🪪 Мой бейдж 🪪", 'card_service_id', NULL, 0, 0);
-            $this->add('callback_data', "Контроль сроков годности", NULL, NULL, 1, 0);
-            $this->add('callback_data', "ОПТ 3% [от 1 тыс]", 'card_opt_3', NULL, 2, 0);
-            $this->add('callback_data', "ОПТ 5% [от 3 тыс]", 'card_opt_5', NULL, 2, 1);
-            $this->add('callback_data', "ОПТ 10% [от 5 тыс]", 'card_opt_10', NULL, 3, 0);
-            $this->add('callback_data', "ОПТ 15% [от 10 тыс]", 'card_opt_15', NULL, 3, 1);
-            $this->add('callback_data', "ОПТ 20% [от 15 тыс]", 'card_opt_20', NULL, 4, 0);
-            $this->add('callback_data', "ОСББ 15%", 'card_osbb', NULL, 5, 0);
+            $this->add('callback_data', "🪪 Мой бейдж 🪪", 'card_service_id', NULL, NULL, 0, 0);
+            $this->add('callback_data', "Контроль сроков годности", NULL, NULL, NULL, 1, 0);
+            $this->add('callback_data', "ОПТ 3% [от 1 тыс]", 'card_opt_3', NULL, NULL, 2, 0);
+            $this->add('callback_data', "ОПТ 5% [от 3 тыс]", 'card_opt_5', NULL, NULL, 2, 1);
+            $this->add('callback_data', "ОПТ 10% [от 5 тыс]", 'card_opt_10', NULL, NULL, 3, 0);
+            $this->add('callback_data', "ОПТ 15% [от 10 тыс]", 'card_opt_15', NULL, NULL, 3, 1);
+            $this->add('callback_data', "ОПТ 20% [от 15 тыс]", 'card_opt_20', NULL, NULL, 4, 0);
+            $this->add('callback_data', "ОСББ 15%", 'card_osbb', NULL, NULL, 5, 0);
         }
         else
-            $this->add('callback_data', "⚠ Запросить доступ ⚠", NULL, NULL, 0, 0);
+            $this->add('callback_data', "⚠ Запросить доступ ⚠", NULL, NULL, NULL, 0, 0);
 
 
 
@@ -205,11 +205,11 @@ class keyboard
 
     public function close(): bool|string
     {
-        $this->add('callback_data', "Закрыть", 'close', NULL, 0, 0);
+        $this->add('callback_data', "Закрыть", 'close', NULL, NULL, 0, 0);
         return json_encode($this->keyboard);
     }
 
-    private function add($keyboard_data_type, $text, $action, $type, $row, $col): void
+    private function add($keyboard_data_type, $text, $action, $type, $variation, $row, $col): void
     {
         switch ($keyboard_data_type) {
             case 'request_contact':
@@ -227,7 +227,7 @@ class keyboard
                 $button =
                     [
                         "text" => $text,
-                        $keyboard_data_type => "action:$action|type:$type"
+                        $keyboard_data_type => "action:$action|type:$type|variation:$variation"
                     ];
 
                 $this->keyboard[$this->keyboard_type][$row][$col] = $button;
@@ -261,51 +261,51 @@ class keyboard
         $row = 0;
 
         if ($this->mysqli_result['phone_number']) {
-            $this->add(NULL, $this->text_filling['keyboard']['main']['search'], NULL, NULL, $row, $col);
+            $this->add(NULL, $this->text_filling['keyboard']['main']['search'], NULL, NULL, NULL, $row, $col);
             $row++;
         }
 
         if ($this->mysqli_result['cart_product']) {
             $i++;
-            $this->add(NULL, $this->text_filling['keyboard']['main']['cart'], NULL, NULL, $row, $col);
+            $this->add(NULL, $this->text_filling['keyboard']['main']['cart'], NULL, NULL, NULL, $row, $col);
             $col++;
         }
 
         if ($this->mysqli_result['role'] != 'viewer') {
             $i++;
-            $this->add(NULL, $this->text_filling['keyboard']['main']['admin'], NULL, NULL, $row, $col);
+            $this->add(NULL, $this->text_filling['keyboard']['main']['admin'], NULL, NULL, NULL, $row, $col);
             $col++;
         }
 
         if ($this->mysqli_result['favorite']) {
             $i++;
-            $this->add(NULL, $this->text_filling['keyboard']['main']['favorite'], NULL, NULL, $row, $col);
+            $this->add(NULL, $this->text_filling['keyboard']['main']['favorite'], NULL, NULL, NULL, $row, $col);
         }
 
         if ($i != 0) $row++;
 
         if ($this->mysqli_result['phone_number'])
-            $this->add(NULL, $this->text_filling['keyboard']['main']['profile'], NULL, NULL, $row, 0);
+            $this->add(NULL, $this->text_filling['keyboard']['main']['profile'], NULL, NULL, NULL, $row, 0);
         else
-            $this->add('request_contact', $this->text_filling['keyboard']['main']['login'], NULL, true, $row, 0);
+            $this->add('request_contact', $this->text_filling['keyboard']['main']['login'], NULL, true, NULL, $row, 0);
 
-        $this->add(NULL, $this->text_filling['keyboard']['main']['help'], NULL, NULL, $row, 1);
+        $this->add(NULL, $this->text_filling['keyboard']['main']['help'], NULL, NULL, NULL, $row, 1);
         return json_encode($this->keyboard);
     }
 
     public function search_main_menu(): bool|string
     {
         $this->add('callback_data', $this->text_filling['keyboard']['search']['brand'],
-            'search_main_menu', 'brand', 0, 0);
+            'search_main_menu', 'brand', NULL, 0, 0);
 
         $this->add('callback_data', $this->text_filling['keyboard']['search']['category'],
-            'search_main_menu', 'category', 0, 1);
+            'search_main_menu', 'category', NULL, 0, 1);
 
         $this->add('callback_data', $this->text_filling['keyboard']['search']['list'],
-            'search_main_menu', 'list', 1, 0);
+            'search_main_menu', 'list', NULL, 1, 0);
 
         $this->add('callback_data', $this->text_filling['keyboard']['back_main_search'],
-            'close', NULL, 2, 0);
+            'close', NULL, NULL, 2, 0);
 
         return json_encode($this->keyboard);
     }
@@ -313,19 +313,19 @@ class keyboard
     public function product_card($product_card): bool|string
     {
 
-        $this->add('callback_data', '⭐', 'add_favorite', NULL, 0, 0);
-        $this->add('callback_data', $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'], NULL, NULL, 0, 1);
-        $this->add('callback_data', '🛒', 'add_cart', NULL, 0, 2);
+        $this->add('callback_data', '⭐', 'add_favorite', NULL, NULL, 0, 0);
+        $this->add('callback_data', $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'], NULL, NULL, NULL, 0, 1);
+        $this->add('callback_data', '🛒', 'add_cart', NULL, NULL, 0, 2);
 
 
-        $this->add('callback_data', 'Описание', 'description', $this->mysqli_result['vendor_code'], 1, 0);
-        $this->add('inline_query', 'Выбрать другой цвет', 'description', $this->mysqli_result['vendor_code'], 1, 1);
+        $this->add('callback_data', 'Описание', 'description', $this->mysqli_result['vendor_code'], NULL, 1, 0);
+        $this->add('inline_query', 'Выбрать другой цвет', 'description', $this->mysqli_result['vendor_code'], NULL, 1, 1);
 
-        $this->add('callback_data', '⬅', 'page_prev', NULL, 2, 0);
-        $this->add('callback_data', '1 из 40', NULL, NULL, 2, 1);
-        $this->add('callback_data', '➡', 'page_next', NULL, 2, 2);
+        $this->add('callback_data', '⬅', 'page_prev', NULL, NULL, 2, 0);
+        $this->add('callback_data', '1 из 40', NULL, NULL, NULL, 2, 1);
+        $this->add('callback_data', '➡', 'page_next', NULL, NULL, 2, 2);
 
-        $this->add('callback_data', 'Назад', 'back', NULL, 3, 0);
+        $this->add('callback_data', 'Назад', 'back', NULL, NULL, 3, 0);
 
         return json_encode($this->keyboard);
     }
@@ -349,14 +349,14 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
             if (iconv_strlen($sql_value['description']) <= 11) {
                 $count++;
                 $this->add('callback_data', $sql_value['description'],
-                    $this->callback_data_action, $sql_value[$this->callback_data_type.'_id'], $row, $column);
+                    $this->callback_data_action, $sql_value[$this->callback_data_type.'_id'], NULL, $row, $column);
                 $column++;
             } else {
                 if ($count >= 1) $row++;
                 $column = 0;
                 $count = 0;
                 $this->add('callback_data', $sql_value['description'],
-                    $this->callback_data_action, $sql_value[$this->callback_data_type.'_id'], $row, $column);
+                    $this->callback_data_action, $sql_value[$this->callback_data_type.'_id'], NULL, $row, $column);
                 $row++;
             }
             if ($column == 3) {
@@ -367,7 +367,7 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         }
 
         $this->add('callback_data', 'Назад',
-            'back_main_search', NULL, $row, 0);
+            'back_main_search', NULL, NULL, $row, 0);
 
         return json_encode($this->keyboard);
     }

@@ -31,6 +31,7 @@ if (file_get_contents('php://input')) {
             $data = $input['callback_query'];
             $callback_action = explode(':', explode('|', $data['data'])[0])[1];
             $callback_type = explode(':', explode('|', $data['data'])[1])[1];
+            $callback_variation = explode(':', explode('|', $data['data'])[2])[1];
         } else {
             $data = $input['message'];
         }
