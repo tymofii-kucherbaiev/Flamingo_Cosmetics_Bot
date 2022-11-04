@@ -13,8 +13,8 @@ $core->deleteMessage($data['message_id']);
 switch ($data['text']) {
     case $text_filling['command']['start']:
 
-        if ($mysqli_result_users['phone_number']) $message = $mysqli_result_users['first_name'] . $text_filling['welcome'];
-        else $message = $text_filling['new_user'];
+        if ($mysqli_result_users['phone_number']) $message = $mysqli_result_users['first_name'] . $text_filling['message']['welcome'];
+        else $message = $text_filling['message']['new_user'];
 
         $callback = json_decode($core->sendMessage($message, $keyboard->main_menu()), true);
 
@@ -28,10 +28,12 @@ switch ($data['text']) {
     case $text_filling['keyboard']['main']['search']:
         $keyboard->keyboard_type = 'inline_keyboard';
 
-        $callback = json_decode($core->sendMessage($text_filling['search'], $keyboard->search_menu()), true);
+        $callback = json_decode($core->sendMessage($text_filling['message']['search'], $keyboard->search_main_menu()), true);
         $mysqli->query("CALL PC_update_user('callback_id', '{$callback['result']['message_id']}', '$user_id')");
         $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
+
+
 }
 
 

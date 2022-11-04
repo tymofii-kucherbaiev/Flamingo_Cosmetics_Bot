@@ -5,6 +5,7 @@
   "content": {
     "currency": "₽",
     "keyboard": {
+      "back_main_search": "Закрыть",
       "main": {
         "search": "\uD83D\uDD0D Найти товар \uD83D\uDD0D",
         "help": "❗ Помощь ❗",
@@ -17,54 +18,24 @@
       "search": {
         "brand": "По брендам",
         "category": "По категориям ",
-        "list": "По всем товарам"
+        "list": "По всем товарам",
+        "callback_brand": "выберите бренд",
+        "callback_category": "выберите категорию"
       },
       "profile": {
       },
       "product": {
       }
     },
-    "callback_data": {
-      "keyboard": {
-        "back_main_search": "Вернуться назад"
-      },
-      "search_brand": "выберите бренд",
-      "search_category": "выберите категорию"
-    },
     "command": {
       "start": "/start",
       "search": "/search"
     },
-    "complete": ", спасибо за регистрацию!\nХорошего дня и удачных покупок!",
-    "new_user": "Добро пожаловать!\n\nПожалуйста пройдите регистрацию.",
-    "welcome": ", добро пожаловать!",
-    "search": "Как вы желаете искать?"
-  },
-  "content_2": {
-    "currency": "₽",
-    "keyboard": {
-      "main_back": "Главное меню",
-      "main_close": "Закрыть",
-      "main_search": "Найти товар",
-      "main_login": "⚠ Регицстрация ⚠",
-      "main_help": "Помощь",
-      "main_admin": "Управление",
-      "main_favorite": "Избранное",
-      "main_cart": "Корзина",
-      "main_profile": "Мой аккаунт",
-      "profile_history": "История заказов",
-      "profile_name_unknown": "Имя",
-      "yellow": "\uD83D\uDFE1",
-      "profile_name": "Изменить имя",
-      "profile_sex_unknown": "Пол",
-      "profile_sex": "Изменить пол",
-      "profile_birthday_unknown": "Дата рождения",
-      "profile_birthday": "Изменить дату рождения",
-      "search_catalog": "Каталоги",
-      "search_brand": "Бренды",
-      "search_all": "Показать весь список",
-      "max_caption": "123456789-123456789-123456789-123456789-12345",
-      "": ""
+    "message": {
+      "complete": ", спасибо за регистрацию!\nХорошего дня и удачных покупок!",
+      "new_user": "Добро пожаловать!\n\nПожалуйста пройдите регистрацию.",
+      "welcome": ", добро пожаловать!",
+      "search": "Как вы желаете искать?"
     }
   }
 }

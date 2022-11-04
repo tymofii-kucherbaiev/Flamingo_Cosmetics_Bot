@@ -13,7 +13,7 @@ class API
         $this->url = "https://api.telegram.org/bot$token/";
     }
 
-    public function sendMessage($text, $reply_markup): bool|array|string
+    public function sendMessage($text, $reply_markup = NULL): bool|array|string
     {
         if ($reply_markup == 'close')
             $request_params = array(
@@ -182,16 +182,6 @@ class keyboard
         ];
     }
 
-    public function epicentrk_product(): bool|string
-    {
-        $this->add('callback_data', "Товара нет!", 'not_available', $this->mysqli_result['vendor_code'], 0, 0);
-        $this->add('callback_data', "Изменить даты", 'change_dates', $this->mysqli_result['vendor_code'], 0, 1);
-        $this->add('callback_data', "Осталось дней: " . $this->mysqli_result['days_left'], NULL, NULL, 1, 0);
-        $this->add('callback_data', "Закрыть", 'close', NULL, 1, 0);
-
-        return json_encode($this->keyboard);
-    }
-
     public function epicentrk_main_menu(): bool|string
     {
         if ($this->mysqli_result['is_active'] === 1) {
@@ -264,17 +254,6 @@ class keyboard
         }
     }
 
-    public function epicentrk_product_date(): bool|string
-    {
-        $this->add('callback_data', "1. " . $this->mysqli_result['date_1'], 'date_1', $this->mysqli_result['vendor_code'], 0, 0);
-        $this->add('callback_data', "2. " . $this->mysqli_result['date_2'], 'date_2', $this->mysqli_result['vendor_code'], 0, 1);
-        $this->add('callback_data', "3. " . $this->mysqli_result['date_3'], 'date_3', $this->mysqli_result['vendor_code'], 1, 0);
-        $this->add('callback_data', "4. " . $this->mysqli_result['date_4'], 'date_4', $this->mysqli_result['vendor_code'], 1, 1);
-        $this->add('callback_data', "Закрыть", 'close', NULL, 2, 0);
-
-        return json_encode($this->keyboard);
-    }
-
     public function main_menu(): bool|string
     {
         $i = 0;
@@ -314,16 +293,19 @@ class keyboard
         return json_encode($this->keyboard);
     }
 
-    public function search_menu(): bool|string
+    public function search_main_menu(): bool|string
     {
         $this->add('callback_data', $this->text_filling['keyboard']['search']['brand'],
-            'search_brand', NULL, 0, 0);
+            'search_main_menu', 'brand', 0, 0);
 
         $this->add('callback_data', $this->text_filling['keyboard']['search']['category'],
-            'search_category', NULL, 0, 1);
+            'search_main_menu', 'category', 0, 1);
 
         $this->add('callback_data', $this->text_filling['keyboard']['search']['list'],
-            'search_list', NULL, 1, 0);
+            'search_main_menu', 'list', 1, 0);
+
+        $this->add('callback_data', $this->text_filling['keyboard']['back_main_search'],
+            'close', NULL, 2, 0);
 
         return json_encode($this->keyboard);
     }
@@ -348,7 +330,7 @@ class keyboard
         return json_encode($this->keyboard);
     }
 
-    public function search(): bool|string
+    public function search_main_product(): bool|string
     {
         $sql_result = $this->mysqli_link->query("
 SELECT product.{$this->callback_data_type}_id,
@@ -356,7 +338,7 @@ SELECT product.{$this->callback_data_type}_id,
 FROM product
          INNER JOIN $this->callback_data_type ON ($this->callback_data_type.id = product.{$this->callback_data_type}_id)
 GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_characters ASC");
-        
+
         $column = 0;
         $row = 0;
         $count = 0;
@@ -367,14 +349,14 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
             if (iconv_strlen($sql_value['description']) <= 11) {
                 $count++;
                 $this->add('callback_data', $sql_value['description'],
-                    $this->callback_data_action, $sql_value['id'], $row, $column);
+                    $this->callback_data_action, $sql_value[$this->callback_data_type.'_id'], $row, $column);
                 $column++;
             } else {
                 if ($count >= 1) $row++;
                 $column = 0;
                 $count = 0;
                 $this->add('callback_data', $sql_value['description'],
-                    $this->callback_data_action, $sql_value['id'], $row, $column);
+                    $this->callback_data_action, $sql_value[$this->callback_data_type.'_id'], $row, $column);
                 $row++;
             }
             if ($column == 3) {
@@ -390,85 +372,5 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
-    public function product(): bool|string
-    {
-//        $sql_result = $this->mysqli_link->query("SELECT * FROM product WHERE brand_id LIKE $this->callback_data_type");
 
-        return json_encode($this->keyboard);
-    }
-
-    /*
-
-
-
-
-    //    private function test ($result_sql): bool|string
-    //    {
-    //
-    //        $col = 0; $row = 0; $i = 0;
-    //
-    //        foreach ($result_sql as $sql_value) {
-    ////            if ($sql_value['Brand'] == 'CATRICE') {
-    ////                if ($i == 0) {
-    ////                    $i = 0;
-    //                    $this->add('callback_data',
-    //                        $sql_value['Brand'],
-    //                        $sql_value['Brand'], NULL, $row, $col);
-    //                    $col++;
-    //                    if ($col == 2) {
-    //                        $col = 0;
-    //                        $row++;
-    //                    }
-    ////                }
-    //
-    //
-    //
-    ////                $i++;
-    ////            }
-    //        }
-    //
-    //        return json_encode($this->keyboard);
-    //    }
-
-    //    private function test ($result_sql): bool|string
-    //    {
-    //
-    //        $col = 0; $row = 0; $i = 0;
-    //
-    //        $res = explode ('|', $text);
-    //        $val = explode (':', $res[0]);
-    //
-    //        foreach ($result_sql as $sql_value) {
-    ////            if ($sql_value['Brand'] == $val[1]) {
-    //            foreach (explode(', ', $sql_value['Category']) as $value) {
-    //
-    //
-    //
-    //
-    //
-    //
-    ////            if ($sql_value['Brand'] == 'CATRICE') {
-    ////                if ($i == 0) {
-    ////                    $i = 0;
-    //                    $this->add('callback_data',
-    //                        $value,
-    //                        NULl, NULL, $row, $col);
-    //                    $col++;
-    //                    if ($col == 2) {
-    //                        $col = 0;
-    //                        $row++;
-    //                    }
-    ////                }
-    //
-    //
-    //
-    ////                $i++;
-    ////            }
-    ////            break;
-    //            }
-    //        }
-    //
-    //        return json_encode($this->keyboard);
-    //    }
-    */
 }

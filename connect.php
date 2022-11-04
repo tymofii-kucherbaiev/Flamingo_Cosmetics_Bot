@@ -29,8 +29,8 @@ if (file_get_contents('php://input')) {
     } else {
         if (array_key_exists('callback_query', $input)) {
             $data = $input['callback_query'];
-            $action = explode(':', explode('|', $data['data'])[0])[1];
-            $type = explode(':', explode('|', $data['data'])[1])[1];
+            $callback_action = explode(':', explode('|', $data['data'])[0])[1];
+            $callback_type = explode(':', explode('|', $data['data'])[1])[1];
         } else {
             $data = $input['message'];
         }
