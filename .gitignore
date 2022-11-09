@@ -1,9 +1,6 @@
 /epicentrk.php
-/helper/sql.txt
-/helper/test.php
-/helper/file.xlsx
+/helper/
 /.idea/
-/helper/test_2.php
-/helper/test_3.php
+/errors/
 /epicentr_cron.php
 /file/

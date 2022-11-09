@@ -4,9 +4,8 @@ class API
 {
     public int $user_id;
     public string|null $parse_mode = null;
-    private string $url;
-
     public bool $protect_content = FALSE;
+    private string $url;
 
     public function __construct($token)
     {
@@ -193,19 +192,10 @@ class keyboard
             $this->add('callback_data', "ОПТ 15% [от 10 тыс]", 'card_opt_15', NULL, NULL, 3, 1);
             $this->add('callback_data', "ОПТ 20% [от 15 тыс]", 'card_opt_20', NULL, NULL, 4, 0);
             $this->add('callback_data', "ОСББ 15%", 'card_osbb', NULL, NULL, 5, 0);
-        }
-        else
+        } else
             $this->add('callback_data', "⚠ Запросить доступ ⚠", NULL, NULL, NULL, 0, 0);
 
 
-
-
-        return json_encode($this->keyboard);
-    }
-
-    public function close(): bool|string
-    {
-        $this->add('callback_data', "Закрыть", 'close', NULL, NULL, 0, 0);
         return json_encode($this->keyboard);
     }
 
@@ -252,6 +242,12 @@ class keyboard
                 $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                 break;
         }
+    }
+
+    public function close(): bool|string
+    {
+        $this->add('callback_data', "Закрыть", 'close', NULL, NULL, 0, 0);
+        return json_encode($this->keyboard);
     }
 
     public function main_menu(): bool|string
@@ -349,14 +345,14 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
             if (iconv_strlen($sql_value['description']) <= 11) {
                 $count++;
                 $this->add('callback_data', $sql_value['description'],
-                    $this->callback_data_action, $sql_value[$this->callback_data_type.'_id'], NULL, $row, $column);
+                    $this->callback_data_action, $sql_value[$this->callback_data_type . '_id'], $this->callback_data_type, $row, $column);
                 $column++;
             } else {
                 if ($count >= 1) $row++;
                 $column = 0;
                 $count = 0;
                 $this->add('callback_data', $sql_value['description'],
-                    $this->callback_data_action, $sql_value[$this->callback_data_type.'_id'], NULL, $row, $column);
+                    $this->callback_data_action, $sql_value[$this->callback_data_type . '_id'], $this->callback_data_type, $row, $column);
                 $row++;
             }
             if ($column == 3) {
