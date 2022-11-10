@@ -28,7 +28,7 @@ switch ($data['text']) {
     case $text_filling['keyboard']['main']['search']:
         $keyboard->keyboard_type = 'inline_keyboard';
 
-        $callback = json_decode($core->sendMessage($text_filling['message']['search'], $keyboard->search_main_menu()), true);
+        $callback = json_decode($core->sendMessage($text_filling['message']['search']['main'], $keyboard->search_main_menu()), true);
         $mysqli->query("CALL PC_update_user('callback_id', '{$callback['result']['message_id']}', '$user_id')");
         $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
