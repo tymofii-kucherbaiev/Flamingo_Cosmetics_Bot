@@ -43,7 +43,7 @@ if (file_get_contents('php://input')) {
         $user_username = addslashes($data['from']['username']);
         $message_id = $data['message_id'];
 
-        $core->user_id = $data['from']['id'];
+        $core->chat_id = $data['from']['id'];
 
         $mysqli_result_users = $mysqli->query("CALL PC_add_user($user_id, '$user_username', '$user_first_name', '$user_last_name')")->fetch();
 

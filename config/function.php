@@ -2,9 +2,16 @@
 
 class API
 {
-    public int $user_id;
+    /* ID пользователя (чата) */
+    public int $chat_id;
+
+    /* Режим визуальной разметки */
     public string|null $parse_mode = null;
+
+    /* Защищенный просмотр */
     public bool $protect_content = FALSE;
+
+    /* Адрес с токеном */
     private string $url;
 
     public function __construct($token)
@@ -16,36 +23,37 @@ class API
     {
         if ($reply_markup == 'close')
             $request_params = array(
-                'chat_id' => $this->user_id,
+                'chat_id' => $this->chat_id,
                 'text' => $text,
                 'reply_markup' => json_encode(["remove_keyboard" => true])
             );
         elseif ($this->parse_mode)
             $request_params = array(
-                'chat_id' => $this->user_id,
+                'chat_id' => $this->chat_id,
                 'text' => $text,
                 'parse_mode' => $this->parse_mode,
                 'reply_markup' => $reply_markup
             );
         else
             $request_params = array(
-                'chat_id' => $this->user_id,
+                'chat_id' => $this->chat_id,
                 'text' => $text,
                 'reply_markup' => $reply_markup
             );
         return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
     }
 
+    /* Обработчик ошибок */
     private function error($input)
     {
         $error = json_decode($input, true);
-        if ($error['ok'] === FALSE)
+        if ($error['ok'] === FALSE AND $error['description'] != "Bad Request: message can't be deleted for everyone")
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/errors/' .
                 $error['error_code'] . ' [' . date("d-m") . '] [' . date("H-i-s") . '].json', $input);
         return $input;
     }
 
-    public function curl($method, $request_params): bool|string|array
+    private function curl($method, $request_params): bool|string|array
     {
         $ch = curl_init($this->url . $method . '?');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -55,10 +63,10 @@ class API
         return $result;
     }
 
-    public function sendPhoto($text, $image, $reply_markup): bool|array|string
+    public function sendPhoto($text, $image, $reply_markup = NULL): bool|array|string
     {
         $request_params = array(
-            'chat_id' => $this->user_id,
+            'chat_id' => $this->chat_id,
             'photo' => $image,
             'caption' => $text,
             'protect_content' => $this->protect_content,
@@ -92,30 +100,13 @@ class API
         return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
     }
 
-    public function editMessageText($text, $message_id, $reply_markup): bool|array|string
+    public function editMessageText($text, $message_id, $reply_markup = NULL): bool|array|string
     {
 
         $request_params = array(
-            'chat_id' => $this->user_id,
+            'chat_id' => $this->chat_id,
             'message_id' => $message_id,
             'text' => $text,
-            'reply_markup' => $reply_markup
-        );
-        return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
-    }
-
-    public function editMessageMedia($caption, $message_id, $image, $reply_markup): bool|array|string
-    {
-        $photo = ['type' => 'photo',
-            'media' => $image,
-            'caption' => $caption,
-//            'parse_mode' => 'html'
-        ];
-
-        $request_params = array(
-            'chat_id' => $this->user_id,
-            'message_id' => $message_id,
-            'media' => json_encode($photo),
             'reply_markup' => $reply_markup
         );
         return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
@@ -124,32 +115,11 @@ class API
     public function deleteMessage($message_id): void
     {
         $request_params = array(
-            'chat_id' => $this->user_id,
+            'chat_id' => $this->chat_id,
             'message_id' => $message_id
         );
         $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
     }
-
-//    public function sendLocation ($chat_id, $latitude, $longitude): void
-//    {
-//        $this->sendMessage("Покупатель: Гитлер Адольф Константинович
-//Телефон: +38-050-000-00-00
-//
-//Заказ: №4213
-//Содержимое:
-//1. FFLEUR TK-12 №04 Пудра компактная «2в1″ - 2 шт - 200 грн (400 грн)
-//2. FFLEUR TK-12 №02 Пудра компактная «2в1″ - 1 шт - 200 грн (200 грн)
-//
-//Сумма: 600 грн
-//Адресс доставки: ", $chat_id, NULL);
-//        $request_params = array(
-//            'chat_id' => $chat_id,
-//            'protect_content' => false,
-//            'latitude' => $latitude,
-//            'longitude' => $longitude
-//        );
-//        $this->curl(method: __FUNCTION__, request_params: $request_params);
-//    }
 
 }
 
@@ -166,10 +136,13 @@ class keyboard
 
     /* mysqli */
     public object|null $mysqli_link;
-    public string|null $callback_data_action;
 
     /* callback_data */
+    public string|null $callback_data_variation;
+    public string|null $callback_data_action;
     public string|null $callback_data_type;
+
+    /* Private */
     private array $keyboard;
 
     public function __construct()
@@ -179,24 +152,6 @@ class keyboard
             'resize_keyboard' => true,
             'one_time_keyboard' => $this->one_time_keyboard
         ];
-    }
-
-    public function epicentrk_main_menu(): bool|string
-    {
-        if ($this->mysqli_result['is_active'] === 1) {
-            $this->add('callback_data', "🪪 Мой бейдж 🪪", 'card_service_id', NULL, NULL, 0, 0);
-            $this->add('callback_data', "Контроль сроков годности", NULL, NULL, NULL, 1, 0);
-            $this->add('callback_data', "ОПТ 3% [от 1 тыс]", 'card_opt_3', NULL, NULL, 2, 0);
-            $this->add('callback_data', "ОПТ 5% [от 3 тыс]", 'card_opt_5', NULL, NULL, 2, 1);
-            $this->add('callback_data', "ОПТ 10% [от 5 тыс]", 'card_opt_10', NULL, NULL, 3, 0);
-            $this->add('callback_data', "ОПТ 15% [от 10 тыс]", 'card_opt_15', NULL, NULL, 3, 1);
-            $this->add('callback_data', "ОПТ 20% [от 15 тыс]", 'card_opt_20', NULL, NULL, 4, 0);
-            $this->add('callback_data', "ОСББ 15%", 'card_osbb', NULL, NULL, 5, 0);
-        } else
-            $this->add('callback_data', "⚠ Запросить доступ ⚠", NULL, NULL, NULL, 0, 0);
-
-
-        return json_encode($this->keyboard);
     }
 
     private function add($keyboard_data_type, $text, $action, $type, $variation, $row, $col): void
@@ -322,6 +277,14 @@ class keyboard
         $this->add('callback_data', '➡', 'page_next', NULL, NULL, 2, 2);
 
         $this->add('callback_data', 'Назад', 'back', NULL, NULL, 3, 0);
+
+        return json_encode($this->keyboard);
+    }
+
+    public function search_product_list(): bool|string
+    {
+
+        $this->add(keyboard_data_type: '', text: '', action: '', type: '', variation: '', row: '', col: '');
 
         return json_encode($this->keyboard);
     }
