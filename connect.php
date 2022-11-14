@@ -16,7 +16,7 @@ if (file_get_contents('php://input')) {
     $mysqli = new PDO("mysql:host=$db_hostname;dbname=$db_database", $db_username, $db_password,
         $mysqli_option);
 
-    $core = new API('5484985114:AAEhGnuPiLBzTGlxYX8wrIdYgoxlxGDXKg0', $mysqli);
+    $core = new API('5484985114:AAEhGnuPiLBzTGlxYX8wrIdYgoxlxGDXKg0');
 
     $text_filling = json_decode(file_get_contents('./config/message_control.json'), true)['content'];
     $input = json_decode(file_get_contents('php://input'), true);
@@ -29,7 +29,6 @@ if (file_get_contents('php://input')) {
 
     if ($bool_inline_query === TRUE) {
         $data = $input['inline_query'];
-
     } elseif ($bool_callback_query === TRUE) {
         $data = $input['callback_query'];
 
@@ -38,7 +37,6 @@ if (file_get_contents('php://input')) {
         $callback_variation = explode(':', explode('|', $data['data'])[2])[1];
     } else {
         $data = $input['message'];
-
     }
 
     $user_message = $data['text'];
@@ -55,13 +53,10 @@ if (file_get_contents('php://input')) {
     $keyboard->mysqli_link = $mysqli;
 
     if ($bool_inline_query === TRUE) {
-
         require $_SERVER['DOCUMENT_ROOT'] . '/query/inline_query.php';
     } elseif ($bool_callback_query === TRUE) {
-
         require $_SERVER['DOCUMENT_ROOT'] . '/query/callback_query.php';
     } else {
-
         require $_SERVER['DOCUMENT_ROOT'] . '/query/message_query.php';
     }
 }

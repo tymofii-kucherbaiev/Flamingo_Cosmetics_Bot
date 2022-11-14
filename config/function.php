@@ -47,9 +47,9 @@ class API
     private function error($input)
     {
         $error = json_decode($input, true);
-        if ($error['ok'] === FALSE and $error['description'] != "Bad Request: message can't be deleted for everyone")
+        if ($error['ok'] === FALSE)
             file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/errors/' .
-                $error['error_code'] . ' [' . date("d-m") . '] [' . date("H-i-s") . '].json', $input);
+                '[' . date("d-m") . '] [' . date("H-i-s") . '] ' . $error['description'] . '.json', $input);
         return $input;
     }
 
@@ -100,7 +100,23 @@ class API
         return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
     }
 
-    public function editMessageText($text, $message_id, $reply_markup = NULL): bool|array|string
+    public function editMessageMedia ($message_id, $caption, $media, $reply_markup = NULL): void
+    {
+        $request_params = array(
+            'chat_id' => $this->chat_id,
+            'message_id' => $message_id,
+            'media' => json_encode([
+                'type' => 'photo',
+                'media' => $media,
+                'caption' => $caption
+            ]),
+            'reply_markup' => $reply_markup
+        );
+
+        $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
+    }
+
+    public function editMessageText($text, $message_id, $reply_markup = NULL): void
     {
 
         $request_params = array(
@@ -109,10 +125,10 @@ class API
             'text' => $text,
             'reply_markup' => $reply_markup
         );
-        return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
+        $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
     }
 
-    public function deleteMessage($message_id): void
+    public function deleteMessage($message_id, $message_type = 'callback'): void
     {
         $request_params = array(
             'chat_id' => $this->chat_id,
@@ -129,24 +145,26 @@ class keyboard
 
     /* construct */
     public bool $one_time_keyboard = false;
-    public array|null $text_filling;
-
-    /* mysqli_result */
     public array|null $mysqli_result;
 
-    /* mysqli_link */
+    /* mysqli_result */
     public object|null $mysqli_link;
 
-    /* callback_data */
+    /* mysqli_link */
     public string|null $callback_data_variation;
+
+    /* callback_data */
     public string|null $callback_data_action;
     public string|null $callback_data_type;
+    private array|null $text_filling;
 
     /* Private */
     private array $keyboard;
 
-    public function __construct()
+    public function __construct($text_filling)
     {
+        $this->text_filling = $text_filling;
+
         $this->keyboard = [
             $this->keyboard_type => [],
             'resize_keyboard' => true,
@@ -208,41 +226,11 @@ class keyboard
 
     public function main_menu(): bool|string
     {
-        $i = 0;
-        $col = 0;
-        $row = 0;
+        $this->add(NULL, text: $this->text_filling['keyboard']['main']['search'], row: 0, col: 0);
+        $this->add(NULL, text: $this->text_filling['keyboard']['main']['cart'], row: 1, col: 0);
+        $this->add(NULL, text: $this->text_filling['keyboard']['main']['help'], row: 1, col: 1);
+        $this->add(NULL, text: $this->text_filling['keyboard']['main']['favorite'], row: 1, col: 2);
 
-        if ($this->mysqli_result['phone_number']) {
-            $this->add(NULL, text: $this->text_filling['keyboard']['main']['search'], row: $row, col: $col);
-            $row++;
-        }
-
-        if ($this->mysqli_result['cart_product']) {
-            $i++;
-            $this->add(NULL, text: $this->text_filling['keyboard']['main']['cart'], row: $row, col: $col);
-            $col++;
-        }
-
-        if ($this->mysqli_result['role'] != 'viewer') {
-            $i++;
-            $this->add(NULL, text: $this->text_filling['keyboard']['main']['admin'], row: $row, col: $col);
-            $col++;
-        }
-
-        if ($this->mysqli_result['favorite']) {
-            $i++;
-            $this->add(NULL, text: $this->text_filling['keyboard']['main']['favorite'], row: $row, col: $col);
-        }
-
-        if ($i != 0) $row++;
-
-        if ($this->mysqli_result['phone_number']) {
-            $this->add(NULL, text: $this->text_filling['keyboard']['main']['profile'], row: $row, col: 0);
-        } else {
-            $this->add('request_contact', text: $this->text_filling['keyboard']['main']['login'], action: NULL, type: true, variation: NULL, row: $row, col: 0);
-        }
-
-        $this->add(NULL, text: $this->text_filling['keyboard']['main']['help'], row: $row, col: 1);
         return json_encode($this->keyboard);
     }
 
@@ -254,56 +242,50 @@ class keyboard
         $this->add(text: $this->text_filling['keyboard']['search']['category'], action: 'search_main_menu',
             type: 'category', row: 0, col: 1);
 
-        $this->add(text: $this->text_filling['keyboard']['search']['list'], action: 'search_main_menu',
-            type: 'list', row: 1, col: 0);
-
-        $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close',
-            row: 2, col: 0);
-
-        return json_encode($this->keyboard);
-    }
-
-    public function product_card($product_card): bool|string
-    {
-
-        $this->add('callback_data', '⭐', 'add_favorite', NULL, NULL, 0, 0);
-        $this->add('callback_data', $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'], NULL, NULL, NULL, 0, 1);
-        $this->add('callback_data', '🛒', 'add_cart', NULL, NULL, 0, 2);
-
-
-        $this->add('callback_data', 'Описание', 'description', $this->mysqli_result['vendor_code'], NULL, 1, 0);
-        $this->add('inline_query', 'Выбрать другой цвет', 'description', $this->mysqli_result['vendor_code'], NULL, 1, 1);
-
-        $this->add('callback_data', '⬅', 'page_prev', NULL, NULL, 2, 0);
-        $this->add('callback_data', '1 из 40', NULL, NULL, NULL, 2, 1);
-        $this->add('callback_data', '➡', 'page_next', NULL, NULL, 2, 2);
-
-        $this->add('callback_data', 'Назад', 'back', NULL, NULL, 3, 0);
-
         return json_encode($this->keyboard);
     }
 
     public function search_product_list(): bool|string
     {
-        $this->keyboard = [
-            $this->keyboard_type => [],
-            'resize_keyboard' => true,
-            'one_time_keyboard' => $this->one_time_keyboard
-        ];
+        $key = NULL;
+
+        foreach ($this->mysqli_result as $val_key => $value) {
+            if ($value['vendor_code'] == $this->mysqli_result[0]['vendor_code'])
+                $key = $val_key;
+        }
+
+        if ($this->mysqli_result[0]['count'] == $key)
+            $next = 0;
+        else
+            $next = $key + 1;
+
+        if ($key == 0)
+            $back = $this->mysqli_result[0]['count'] - 1;
+        else
+            $back = $key - 1;
+
 
         $this->add(text: '⭐', row: 0, col: 0);
-        $this->add(text: $this->mysqli_result[0]['price_old'] . ' ' . $this->text_filling['currency'], row: 0, col: 1);
+        $this->add(text: $this->mysqli_result[0]['price_old'] . ' ' . $this->text_filling['currency'],
+            type: $this->mysqli_result[0]['category_id'], variation: $this->callback_data_variation, row: 0, col: 1);
         $this->add(text: '🛒', row: 0, col: 2);
 
 
         $this->add(text: 'Описание', action: 'description', type: $this->mysqli_result['vendor_code'], row: 1, col: 0);
-        $this->add(keyboard_data_type: 'inline_query', text: 'Выбрать другой цвет', action: 'description', type: $this->mysqli_result['vendor_code'], row: 1, col: 1);
 
-        $this->add(text: '⬅', row: 2, col: 0);
-        $this->add(text: '1 из ' . $this->mysqli_result[0]['count'], row: 2, col: 1);
-        $this->add(text: '➡', row: 2, col: 2);
+        $this->add(keyboard_data_type: 'inline_query', text: 'Выбрать другой цвет', action: 'description',
+            type: $this->mysqli_result['vendor_code'], row: 1, col: 1);
 
-        $this->add(text: 'Назад', action: 'back_main_search', type: $this->callback_data_type, variation: 'sendPhoto', row: 3, col: 0);
+        $this->add(text: '⬅', action: 'search_product_list', type: 'back',
+            variation: $this->mysqli_result[$back]['vendor_code'], row: 2, col: 0);
+
+        $this->add(text: $this->callback_data_type . ' из ' . $this->mysqli_result[0]['count'],
+            type: $this->callback_data_type, variation: $this->mysqli_result[0]['count'], row: 2, col: 1);
+
+        $this->add(text: '➡', action: 'search_product_list', type: 'next',
+            variation: $this->mysqli_result[$next]['vendor_code'], row: 2, col: 2);
+
+        $this->add(text: 'Назад', action: 'search_main_menu', type: 'card', variation: $this->callback_data_variation, row: 3, col: 0);
 
 
         return json_encode($this->keyboard);

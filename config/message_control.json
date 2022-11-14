@@ -1,6 +1,6 @@
 {
   "name": "message_control",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "last_date_update": "13.11.2022",
   "content": {
     "currency": "₽",
@@ -17,12 +17,7 @@
       },
       "search": {
         "brand": "По брендам",
-        "category": "По категориям ",
-        "list": "По всем товарам"
-      },
-      "profile": {
-      },
-      "product": {
+        "category": "По категориям "
       }
     },
     "command": {
