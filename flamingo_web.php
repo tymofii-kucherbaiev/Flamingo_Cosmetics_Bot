@@ -1,14 +1,14 @@
 <?php
 /**
  * @var $core API
+ * @var $db_hostname string
+ * @var $db_database string
+ * @var $db_username string
+ * @var $db_password string
  */
 require './config/function.php';
+require './config/config.php';
 
-
-$sql_hostname = 'mn469049.mysql.tools';
-$sql_database = 'mn469049_db';
-$sql_username = 'mn469049_db';
-$sql_password = 'jPWQQ8U9';
 
 $options = array(
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -16,7 +16,7 @@ $options = array(
     PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"
 );
 
-$mysqli = new PDO("mysql:host=$sql_hostname;dbname=$sql_database", $sql_username, $sql_password, $options);
+$mysqli = new PDO("mysql:host=$db_hostname;dbname=$db_database", $db_username, $db_password, $options);
 ####################################################################################################################################
 $urls = array(
     'https://dianomi-dn.com/product-category/olivia-valera/makijazh-glaz/',
