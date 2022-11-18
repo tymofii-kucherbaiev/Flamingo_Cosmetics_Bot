@@ -6,7 +6,7 @@ class API
     public int $chat_id;
 
     /* Режим визуальной разметки */
-    public string|null $parse_mode = null;
+    public string|null $parse_mode = NULL;
 
     /* Защищенный просмотр */
     public bool $protect_content = FALSE;
@@ -81,16 +81,14 @@ class API
 
         $request_params = array(
             'inline_query_id' => $inline_query_id,
-            'is_personal' => true,
-//            'switch_pm_text' => 'switch_pm_text',
-//            'switch_pm_parameter' => 'switch_pm_parameter',
-            'cache_time' => 0,
+            'is_personal' => false,
+            'cache_time' => 1,
             'results' => json_encode($result)
         );
         return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
     }
 
-    public function answerCallbackQuery($text = NULL, $show_alert = NULL, $callback_query_id = NULL): bool|array|string
+    public function answerCallbackQuery($text = NULL, $callback_query_id = NULL, $show_alert = FALSE): bool|array|string
     {
         $request_params = array(
             'text' => $text,
@@ -100,7 +98,7 @@ class API
         return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
     }
 
-    public function editMessageMedia ($message_id, $caption, $media, $reply_markup = NULL): void
+    public function editMessageMedia($message_id, $caption, $media, $reply_markup = NULL): void
     {
         $request_params = array(
             'chat_id' => $this->chat_id,
@@ -207,7 +205,7 @@ class keyboard
                 $button =
                     [
                         "text" => $text,
-                        "switch_inline_query_current_chat" => "Hello"
+                        "switch_inline_query_current_chat" => $this->mysqli_result[$this->callback_data_type - 1]['vendor_code']
                     ];
 
                 $this->keyboard[$this->keyboard_type][$row][$col] = $button;
@@ -222,6 +220,12 @@ class keyboard
                 $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                 break;
         }
+    }
+
+    public function product_description(): bool|string
+    {
+        $this->add(text: "Закрыть", action: 'close', type: 'description', row: 0, col: 0);
+        return json_encode($this->keyboard);
     }
 
     public function main_menu(): bool|string
@@ -265,22 +269,29 @@ class keyboard
             $back = $key - 1;
 
 
-        $this->add(text: '⭐', row: 0, col: 0);
-        $this->add(text: $this->mysqli_result[0]['price_old'] . ' ' . $this->text_filling['currency'],
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite',
+            variation: $this->mysqli_result[$this->callback_data_type - 1]['vendor_code'], row: 0, col: 0);
+
+        $this->add(text: $this->mysqli_result[$this->callback_data_type - 1]['price_old'] . ' ' . $this->text_filling['currency'],
             type: $this->mysqli_result[0]['category_id'], variation: $this->callback_data_variation, row: 0, col: 1);
-        $this->add(text: '🛒', row: 0, col: 2);
+
+        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_cart',
+            variation: $this->mysqli_result[$this->callback_data_type - 1]['vendor_code'], row: 0, col: 2);
 
 
-        $this->add(text: 'Описание', action: 'description', type: $this->mysqli_result['vendor_code'], row: 1, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['product']['description'], action: 'description',
+            type: $this->mysqli_result[$this->callback_data_type - 1]['vendor_code'], row: 1, col: 0);
 
-        $this->add(keyboard_data_type: 'inline_query', text: 'Выбрать другой цвет', action: 'description',
-            type: $this->mysqli_result['vendor_code'], row: 1, col: 1);
+        if ($this->mysqli_result[$this->callback_data_type - 1]['count'] > 1)
+            $this->add(keyboard_data_type: 'inline_query', text: $this->text_filling['keyboard']['product']['another_color']
+                . ' [' . $this->mysqli_result[$this->callback_data_type - 1]['count']-1 . ']',
+                type: $this->mysqli_result['vendor_code'], row: 1, col: 1);
 
         $this->add(text: '⬅', action: 'search_product_list', type: 'back',
             variation: $this->mysqli_result[$back]['vendor_code'], row: 2, col: 0);
 
-        $this->add(text: $this->callback_data_type . ' из ' . $this->mysqli_result[0]['count'],
-            type: $this->callback_data_type, variation: $this->mysqli_result[0]['count'], row: 2, col: 1);
+        $this->add(text: $this->callback_data_type . ' из ' . count($this->mysqli_result),
+            type: $this->callback_data_type, variation: count($this->mysqli_result), row: 2, col: 1);
 
         $this->add(text: '➡', action: 'search_product_list', type: 'next',
             variation: $this->mysqli_result[$next]['vendor_code'], row: 2, col: 2);
@@ -298,7 +309,7 @@ SELECT product.{$this->callback_data_type}_id,
        $this->callback_data_type.description
 FROM product
          INNER JOIN $this->callback_data_type ON ($this->callback_data_type.id = product.{$this->callback_data_type}_id)
-GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_characters ASC");
+GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_characters ASC")->fetchAll();
 
         $column = 0;
         $row = 0;
@@ -333,10 +344,20 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
             }
         }
 
-        $this->add(text: 'Назад', action: 'back_main_search', row: $row, col: 0);
+        $this->add(text: 'Закрыть', action: 'close', row: $row, col: 0);
 
         return json_encode($this->keyboard);
     }
 
+    public function test ()
+    {
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite', row: 0, col: 0);
+
+        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_cart', row: 0, col: 1);
+
+        $this->add(text: 'close', row: 1, col: 0);
+
+        return$this->keyboard;
+    }
 
 }

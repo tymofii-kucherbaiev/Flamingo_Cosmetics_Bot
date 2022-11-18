@@ -12,21 +12,23 @@
  * @var $data array
  */
 
+if ($callback_action != 'product_favorite' and $callback_action != 'product_cart')
+    $core->answerCallbackQuery(callback_query_id: $data['id']);
+$keyboard->keyboard_type = 'inline_keyboard';
 switch ($callback_action) {
     case 'search_main_menu':
         # Обрабатывает нажатие одну из 2-х кнопок
         # По брендам или По категориям
         # Выдает список брендов или категорий соответсвенно
 
-        $keyboard->keyboard_type = 'inline_keyboard';
-        $keyboard->callback_data_action = 'search_product_list';
 
-        $core->answerCallbackQuery(callback_query_id: $data['id']);
+        $keyboard->callback_data_action = 'search_product_list';
 
         if ($callback_type == 'card') {
             $core->deleteMessage($mysqli_result_users['callback_id']);
             $keyboard->callback_data_type = $callback_variation;
-            $callback = json_decode($core->sendMessage($text_filling['message']['search']['callback_' . $callback_variation], $keyboard->search_main_product()), true);
+            $callback = json_decode($core->sendMessage($text_filling['message']['search']['callback_' . $callback_variation],
+                $keyboard->search_main_product()), true);
             $mysqli->query("CALL PC_update('callback_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
         } else {
             $keyboard->callback_data_type = $callback_type;
@@ -37,7 +39,7 @@ switch ($callback_action) {
 
     case 'search_product_list':
         # Обрабатывает нажатие на бренд или категорию в списке
-        $keyboard->keyboard_type = 'inline_keyboard';
+
         $keyboard->callback_data_action = 'search_product_list';
         $keyboard->callback_data_variation = 'category';
 
@@ -70,23 +72,17 @@ switch ($callback_action) {
             $keyboard->mysqli_result = $mysqli_product_card =
                 $mysqli->query("CALL PC_product_card('$product_callback_variation', $product_callback_type)")->fetchAll();
 
-            $core->editMessageMedia($mysqli_result_users['callback_id'], $mysqli_product_card[$scroll-1]['title'],
-                $mysqli_product_card[$scroll-1]['image_id'], $keyboard->search_product_list());
-
-            $core->answerCallbackQuery(callback_query_id: $data['id']);
-
+            $core->editMessageMedia($mysqli_result_users['callback_id'], $mysqli_product_card[$scroll - 1]['title'],
+                $mysqli_product_card[$scroll - 1]['image_id'], $keyboard->search_product_list());
         } else {
 
 
             # Удаление сообщения со списком брендов или категорий
             $core->deleteMessage(message_id: $mysqli_result_users['callback_id']);
 
-            # Ответ от сервера на нажатую кнопку
-            $core->answerCallbackQuery(callback_query_id: $data['id']);
 
-            $keyboard->keyboard_type = 'inline_keyboard';
             $keyboard->callback_data_action = 'search_product_list';
-            $keyboard->callback_data_variation = $callback_variation;
+            $keyboard->callback_data_variation = $callback_variation; #category or brand
             $keyboard->callback_data_type = 1; #Текущая позиция продукта (по умолчанию 1)
 
             $keyboard->mysqli_result = $mysqli_product_card =
@@ -96,25 +92,50 @@ switch ($callback_action) {
                 $mysqli_product_card[0]['image_id'], $keyboard->search_product_list()), TRUE);
             $mysqli->query("CALL PC_update('callback_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
         }
+        $core->deleteMessage($mysqli_result_users['service_id']);
         break;
 
     case 'back_main_search':
         if ($callback_variation == 'sendPhoto') {
             $core->deleteMessage($mysqli_result_users['callback_id']);
 
-            $keyboard->keyboard_type = 'inline_keyboard';
+
             $keyboard->callback_data_action = 'search_product_list';
             $keyboard->callback_data_type = $callback_type;
 
             $callback = json_decode($core->sendMessage($text_filling['message']['search']['main'], $keyboard->search_main_menu()), TRUE);
             $mysqli->query("CALL PC_update('callback_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
         } else {
-            $keyboard->keyboard_type = 'inline_keyboard';
+
             $core->editMessageText($text_filling['message']['search']['main'], $mysqli_result_users['callback_id'], $keyboard->search_main_menu());
         }
         break;
 
+    case 'description':
+        $sql_result_local = $mysqli->query("SELECT caption FROM product WHERE vendor_code LIKE $callback_type")->fetch();
+
+        $callback = json_decode($core->sendMessage($sql_result_local['caption'],
+            $keyboard->product_description()), TRUE);
+        $mysqli->query("CALL PC_update('service_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+        break;
+
     case 'close':
-        $core->deleteMessage($mysqli_result_users['callback_id']);
+        if ($callback_type == 'description')
+            $core->deleteMessage($mysqli_result_users['service_id']);
+        else
+            $core->deleteMessage($mysqli_result_users['callback_id']);
+        break;
+
+
+    case 'product_favorite':
+    case 'product_cart':
+        $user_select = $mysqli->query("SELECT product_favorite, product_cart FROM users WHERE user_id LIKE $user_id")->fetch();
+
+        if (preg_match("/$callback_variation/", $user_select[$callback_action]))
+            $core->answerCallbackQuery($text_filling['callback'][$callback_action.'_false'], $data['id']);
+        else {
+            $core->answerCallbackQuery($text_filling['callback'][$callback_action.'_true'], $data['id']);
+            $mysqli->query("CALL PC_update ('$callback_action', '$callback_variation', '$user_id', 'users')");
+        }
         break;
 }

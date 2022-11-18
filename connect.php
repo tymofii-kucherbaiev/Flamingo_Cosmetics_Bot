@@ -1,12 +1,16 @@
 <?php
+/**
+ * @var $db_hostname string
+ * @var $db_database string
+ * @var $db_username string
+ * @var $db_password string
+ * @var $local_access_token string
+ */
+
 if (file_get_contents('php://input')) {
     file_put_contents('json.json', file_get_contents('php://input'));
     require $_SERVER['DOCUMENT_ROOT'] . '/config/function.php';
-
-    $db_hostname = 'mn469049.mysql.tools';
-    $db_database = 'mn469049_db';
-    $db_username = 'mn469049_db';
-    $db_password = 'jPWQQ8U9';
+    require $_SERVER['DOCUMENT_ROOT'] . '/config/config.php';
 
     $mysqli_option = array(
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -16,7 +20,7 @@ if (file_get_contents('php://input')) {
     $mysqli = new PDO("mysql:host=$db_hostname;dbname=$db_database", $db_username, $db_password,
         $mysqli_option);
 
-    $core = new API('5484985114:AAEhGnuPiLBzTGlxYX8wrIdYgoxlxGDXKg0');
+    $core = new API($local_access_token);
 
     $text_filling = json_decode(file_get_contents('./config/message_control.json'), true)['content'];
     $input = json_decode(file_get_contents('php://input'), true);
