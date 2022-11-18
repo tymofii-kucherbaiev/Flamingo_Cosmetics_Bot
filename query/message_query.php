@@ -9,7 +9,7 @@
  * @var $text_filling array
  */
 
-//$core->deleteMessage($data['message_id']);
+$core->deleteMessage($data['message_id']);
 switch ($data['text']) {
     case $text_filling['command']['start']:
         $back_message = json_decode($core->sendMessage($mysqli_result_users['first_name'] . $text_filling['message']['welcome'],
@@ -62,4 +62,4 @@ if ($callback)
     $mysqli->query("CALL PC_update('message_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
 
 
-//$core->deleteMessage($mysqli_result_users['message_id']);
+$core->deleteMessage($mysqli_result_users['message_id']);
