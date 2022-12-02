@@ -21,6 +21,7 @@ if (file_get_contents('php://input')) {
         $mysqli_option);
 
     $core = new API($local_access_token);
+    $core->parse_mode = 'html';
 
     $text_filling = json_decode(file_get_contents('./config/message_control.json'), true)['content'];
     $input = json_decode(file_get_contents('php://input'), true);
@@ -41,6 +42,8 @@ if (file_get_contents('php://input')) {
         $callback_variation = explode(':', explode('|', $data['data'])[2])[1];
     } else {
         $data = $input['message'];
+
+        $bool_via_bot = array_key_exists('via_bot', $data);
     }
 
     $user_message = $data['text'];

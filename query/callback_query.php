@@ -122,6 +122,8 @@ switch ($callback_action) {
     case 'close':
         if ($callback_type == 'description')
             $core->deleteMessage($mysqli_result_users['service_id']);
+        elseif ($callback_type == 'extra')
+            $core->deleteMessage($data['message']['message_id']);
         else
             $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
@@ -129,13 +131,17 @@ switch ($callback_action) {
 
     case 'product_favorite':
     case 'product_cart':
-        $user_select = $mysqli->query("SELECT product_favorite, product_cart FROM users WHERE user_id LIKE $user_id")->fetch();
 
-        if (preg_match("/$callback_variation/", $user_select[$callback_action]))
-            $core->answerCallbackQuery($text_filling['callback'][$callback_action.'_false'], $data['id']);
-        else {
-            $core->answerCallbackQuery($text_filling['callback'][$callback_action.'_true'], $data['id']);
-            $mysqli->query("CALL PC_update ('$callback_action', '$callback_variation', '$user_id', 'users')");
-        }
+        if ($callback_action == 'product_cart')
+            $data_local = "$user_id, $callback_variation, 1";
+        else
+            $data_local = "$user_id, $callback_variation";
+
+    $pr_local = $mysqli->query("CALL PC_insert('users_{$callback_type}_products', '*', '$data_local')")->fetch();
+
+        if ($pr_local['error'])
+            $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_false'], $data['id'], true);
+        else
+            $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_true'], $data['id']);
         break;
 }

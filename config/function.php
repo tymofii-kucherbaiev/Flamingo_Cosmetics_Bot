@@ -231,9 +231,9 @@ class keyboard
     public function main_menu(): bool|string
     {
         $this->add(NULL, text: $this->text_filling['keyboard']['main']['search'], row: 0, col: 0);
-        $this->add(NULL, text: $this->text_filling['keyboard']['main']['cart'], row: 1, col: 0);
+        $this->add(NULL, text: $this->text_filling['keyboard']['main']['favorite'], row: 1, col: 0);
         $this->add(NULL, text: $this->text_filling['keyboard']['main']['help'], row: 1, col: 1);
-        $this->add(NULL, text: $this->text_filling['keyboard']['main']['favorite'], row: 1, col: 2);
+        $this->add(NULL, text: $this->text_filling['keyboard']['main']['cart'], row: 1, col: 2);
 
         return json_encode($this->keyboard);
     }
@@ -269,13 +269,13 @@ class keyboard
             $back = $key - 1;
 
 
-        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite',
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite', type: 'favorite',
             variation: $this->mysqli_result[$this->callback_data_type - 1]['vendor_code'], row: 0, col: 0);
 
         $this->add(text: $this->mysqli_result[$this->callback_data_type - 1]['price_old'] . ' ' . $this->text_filling['currency'],
             type: $this->mysqli_result[0]['category_id'], variation: $this->callback_data_variation, row: 0, col: 1);
 
-        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_cart',
+        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_cart', type: 'cart',
             variation: $this->mysqli_result[$this->callback_data_type - 1]['vendor_code'], row: 0, col: 2);
 
 
@@ -284,7 +284,7 @@ class keyboard
 
         if ($this->mysqli_result[$this->callback_data_type - 1]['count'] > 1)
             $this->add(keyboard_data_type: 'inline_query', text: $this->text_filling['keyboard']['product']['another_color']
-                . ' [' . $this->mysqli_result[$this->callback_data_type - 1]['count']-1 . ']',
+                . ' [' . $this->mysqli_result[$this->callback_data_type - 1]['count'] - 1 . ']',
                 type: $this->mysqli_result['vendor_code'], row: 1, col: 1);
 
         $this->add(text: '⬅', action: 'search_product_list', type: 'back',
@@ -349,15 +349,37 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
-    public function test ()
+    public function other_variation_product(): bool|string
     {
-        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite', row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite', type: 'favorite', variation: $this->mysqli_result['vendor_code'], row: 0, col: 0);
 
-        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_cart', row: 0, col: 1);
+        $this->add(text: $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'], row: 0, col: 1);
 
-        $this->add(text: 'close', row: 1, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_cart', type: 'cart', variation: $this->mysqli_result['vendor_code'], row: 0, col: 2);
 
-        return$this->keyboard;
+        $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close', type: 'extra', row: 1, col: 0);
+
+        return json_encode($this->keyboard);
+    }
+
+    public function profile_cart(): bool|string
+    {
+        $this->add(text: $this->text_filling['keyboard']['cart']['edit_cart'], action: 'edit_cart', row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['cart']['ordering'], action: 'ordering', row: 0, col: 1);
+
+        return json_encode($this->keyboard);
+    }
+
+    public function profile_favorite(): bool|string
+    {
+        if ($this->callback_data_action == 'primary')
+        $this->add(text: $this->text_filling['keyboard']['favorite']['next'], action: 'favorite_next', row: 0, col: 0);
+        else {
+            $this->add(text: $this->text_filling['keyboard']['favorite']['back'], action: 'favorite_back', row: 0, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['favorite']['back'], action: 'favorite_back', row: 0, col: 1);
+        }
+
+        return json_encode($this->keyboard);
     }
 
 }

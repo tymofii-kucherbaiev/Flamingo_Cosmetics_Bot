@@ -18,38 +18,13 @@ if (iconv_strlen($input['inline_query']['query']) == 13) {
 
     foreach ($res as $key => $value) {
         $result[] = [
-            "type" => "photo",
+            "type" => "article",
             "id" => $key,
-            "photo_url" => $value['image_id'],
             "thumb_url" => $value['image_id'],
-//            "photo_width" => 480,
-//            "photo_height" => 480,
             "title" => "Артикул: {$value['vendor_code']}",
             "description" => "{$value['title']}",
-            "caption" => "/{$value['vendor_code']}",
-//            "is_personal" => true,
-//            "photo_file_id" => 'AgACAgQAAxkDAAIQIGN3PNF_hvOm3N6OsxVy-hqkw4wBAALirjEbS-NtUyNCPWh9dMcmAQADAgADeAADKwQ',
-            "reply_markup" => $keyboard->test()
-//                'inline_keyboard' =>
-//                    [
-//                        [
-//                            [
-//                                'text' => 'English',
-//                                'callback_data' => '/lang_english'
-//                            ],
-//                            [
-//                                'text' => 'Русский',
-//                                'callback_data' => '/lang_russian'
-//                            ]
-//                        ],
-//                        [
-//                            [
-//                                'text' => 'Русский',
-//                                'callback_data' => '/lang_russian'
-//                            ]
-//                        ]
-//                    ]
-
+            "message_text" => "/{$value['vendor_code']}",
+            "caption" => "/{$value['vendor_code']}"
         ];
     }
     $core->answerInlineQuery($input['inline_query']['id'], $result);
