@@ -130,18 +130,27 @@ switch ($callback_action) {
 
 
     case 'product_favorite':
+
+
+
+
+
     case 'product_cart':
+    $keyboard->callback_data_type = $callback_variation;
+        $core->sendMessage('Выберите количество:', $keyboard->count_product_cart());
 
-        if ($callback_action == 'product_cart')
-            $data_local = "$user_id, $callback_variation, 1";
-        else
-            $data_local = "$user_id, $callback_variation";
 
-    $pr_local = $mysqli->query("CALL PC_insert('users_{$callback_type}_products', '*', '$data_local')")->fetch();
 
-        if ($pr_local['error'])
-            $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_false'], $data['id'], true);
-        else
+//        if ($callback_action == 'product_cart')
+//            $data_local = "$user_id, $callback_variation, 1";
+//        else
+//            $data_local = "$user_id, $callback_variation";
+//
+//    $pr_local = $mysqli->query("CALL PC_insert('users_{$callback_type}_products', '*', '$data_local')")->fetch();
+//
+//        if ($pr_local['error'])
+//            $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_false'], $data['id'], true);
+//        else
             $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_true'], $data['id']);
         break;
 }

@@ -370,6 +370,19 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
+    public function count_product_cart (): bool|string
+    {
+        $this->add(text: '  1️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 1, row: 0, col: 0);
+        $this->add(text: '  2️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 2, row: 0, col: 1);
+        $this->add(text: '  3️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 3, row: 0, col: 2);
+        $this->add(text: '  4️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 4, row: 0, col: 3);
+        $this->add(text: '  5️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 5, row: 0, col: 4);
+        $this->add(text: '  6️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 6, row: 0, col: 5);
+        $this->add(text: '  7️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 7, row: 0, col: 6);
+
+        return json_encode($this->keyboard);
+    }
+
     public function profile_favorite(): bool|string
     {
         if ($this->callback_data_action == 'primary')
