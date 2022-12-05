@@ -129,15 +129,174 @@ switch ($callback_action) {
             $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
 
-
     case 'product_count':
         if ($mysqli->query("SELECT * FROM users_cart_products WHERE vendor_code LIKE $callback_variation AND user_id LIKE $user_id")->rowCount() == 1)
             $core->answerCallbackQuery($text_filling['callback']['product_cart_false'], $data['id'], true);
         else {
+            $core->answerCallbackQuery(callback_query_id: $data['id']);
             $keyboard->callback_data_type = $callback_variation;
             $callback = json_decode($core->sendMessage('Выберите количество:', $keyboard->count_product_cart()), true);
             $mysqli->query("CALL PC_update('service_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
         }
+        break;
+
+    case 'edit_cart':
+        $keyboard->mysqli_result = $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $local_text = "Ваша корзина:\n";
+        $local_sum = 0;
+        $local_num = 1;
+
+        foreach ($local_user_result as $value) {
+            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+            $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
+
+            $local_text .= "
+—————————————————————————
+<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
+<i>{$pr_local['title']}</i>
+—————————————————————————
+";
+            $local_num++;
+        }
+
+        $local_text .= "\n <b>Общая сумма заказа:</b> $local_sum {$text_filling['currency']}";
+        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
+        break;
+
+    case 'back_cart':
+
+        if ($callback_type == 'cancel') {
+            $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE 
+                                        $user_id AND is_status LIKE FALSE")->fetchAll();
+            foreach ($local_user_result as $item) {
+                $mysqli->query("UPDATE users_cart_products SET is_status = TRUE WHERE user_id LIKE $user_id AND vendor_code LIKE {$item['vendor_code']}");
+            }
+
+            $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE 
+                                        $user_id AND modify_quality NOT LIKE quality")->fetchAll();
+            foreach ($local_user_result as $item) {
+                $mysqli->query("UPDATE users_cart_products SET modify_quality = quality WHERE user_id LIKE $user_id AND vendor_code LIKE {$item['vendor_code']}");
+            }
+
+        } elseif ($callback_type == 'apply') {
+            $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE 
+                                        $user_id AND is_status LIKE FALSE")->fetchAll();
+            foreach ($local_user_result as $item) {
+                $mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id AND vendor_code LIKE {$item['vendor_code']}");
+            }
+
+            $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE 
+                                        $user_id AND modify_quality NOT LIKE quality")->fetchAll();
+            foreach ($local_user_result as $item) {
+                $mysqli->query("UPDATE users_cart_products SET quality = modify_quality WHERE user_id LIKE $user_id AND vendor_code LIKE {$item['vendor_code']}");
+            }
+
+        }
+
+
+        $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $local_text = "Ваша корзина:\n";
+        $local_sum = 0;
+        $local_num = 1;
+
+        foreach ($local_user_result as $value) {
+            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+            $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
+
+            $local_text .= "
+—————————————————————————
+<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
+<i>{$pr_local['title']}</i>
+—————————————————————————
+";
+            $local_num++;
+        }
+
+        $local_text .= "\n <b>Общая сумма заказа:</b> $local_sum {$text_filling['currency']}";
+        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->profile_cart());
+        break;
+
+    case 'delete_product':
+        $mysqli->query("UPDATE users_cart_products SET is_status = FALSE WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type");
+        $keyboard->mysqli_result = $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id
+                                    AND is_status LIKE TRUE")->fetchAll();
+
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $local_text = "Ваша корзина:\n";
+        $local_sum = 0;
+        $local_num = 1;
+
+        foreach ($local_user_result as $value) {
+            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+            $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
+
+            $local_text .= "
+—————————————————————————
+<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
+<i>{$pr_local['title']}</i>
+—————————————————————————
+";
+            $local_num++;
+        }
+
+        $local_text .= "\n <b>Общая сумма заказа:</b> $local_sum {$text_filling['currency']}";
+        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
+        break;
+
+    case 'add_product':
+        $mysqli->query("UPDATE users_cart_products SET modify_quality = modify_quality + 1 WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type");
+        $keyboard->mysqli_result = $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id
+                                    AND is_status LIKE TRUE")->fetchAll();
+
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $local_text = "Ваша корзина:\n";
+        $local_sum = 0;
+        $local_num = 1;
+
+        foreach ($local_user_result as $value) {
+            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+            $local_sum = $local_sum + ($pr_local['price_old'] * $value['modify_quality']);
+
+            $local_text .= "
+—————————————————————————
+<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['modify_quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
+<i>{$pr_local['title']}</i>
+—————————————————————————
+";
+            $local_num++;
+        }
+
+        $local_text .= "\n <b>Общая сумма заказа:</b> $local_sum {$text_filling['currency']}";
+        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
+        break;
+
+    case 'remove_product':
+        $mysqli->query("UPDATE users_cart_products SET modify_quality = modify_quality - 1 WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type");
+        $keyboard->mysqli_result = $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id
+                                    AND is_status LIKE TRUE")->fetchAll();
+
+        $keyboard->keyboard_type = 'inline_keyboard';
+        $local_text = "Ваша корзина:\n";
+        $local_sum = 0;
+        $local_num = 1;
+
+        foreach ($local_user_result as $value) {
+            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+            $local_sum = $local_sum + ($pr_local['price_old'] * $value['modify_quality']);
+
+            $local_text .= "
+—————————————————————————
+<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['modify_quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
+<i>{$pr_local['title']}</i>
+—————————————————————————
+";
+            $local_num++;
+        }
+
+        $local_text .= "\n <b>Общая сумма заказа:</b> $local_sum {$text_filling['currency']}";
+        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
         break;
 
 
@@ -145,7 +304,7 @@ switch ($callback_action) {
     case 'product_cart':
 
         if ($callback_action == 'product_cart') {
-            $data_local = "$user_id, $callback_type, $callback_variation";
+            $data_local = "$user_id, $callback_type, $callback_variation, TRUE, $callback_variation";
             $table_name = 'cart';
         } else {
             $table_name = 'favorite';

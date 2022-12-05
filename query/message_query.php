@@ -28,24 +28,18 @@ switch ($data['text']) {
         $callback = json_decode($core->sendMessage($text_filling['message']['search']['callback_category'],
             $keyboard->search_main_product()), true);
         $mysqli->query("CALL PC_update('callback_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
-
-//    $keyboard->keyboard_type = 'inline_keyboard';
-//
-//    $callback = json_decode($core->sendMessage($text_filling['message']['search']['main'],
-//        $keyboard->search_main_product()), true);
-
         break;
 
     case $text_filling['keyboard']['main']['cart']:
-        $ur_local = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+        $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
 
-        if ($ur_local) {
+        if ($local_user_result) {
             $keyboard->keyboard_type = 'inline_keyboard';
             $local_text = "Ваша корзина:\n";
             $local_sum = 0;
             $local_num = 1;
 
-            foreach ($ur_local as $value) {
+            foreach ($local_user_result as $value) {
                 $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
                 $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
 
@@ -71,11 +65,11 @@ switch ($data['text']) {
         break;
 
     case $text_filling['keyboard']['main']['favorite']:
-        $ur_local = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id")->fetchAll();
+        $local_user_result = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id")->fetchAll();
 
-        if ($ur_local) {
+        if ($local_user_result) {
 
-            $quality_row = count($ur_local);
+            $quality_row = count($local_user_result);
             if ($quality_row > 5) {
                 $keyboard->keyboard_type = 'inline_keyboard';
                 $keyboard->callback_data_action = 'primary';
@@ -84,7 +78,7 @@ switch ($data['text']) {
             $local_text = "Ваш список желаемого:\n";
             $local_num = 1;
 
-            foreach ($ur_local as $value) {
+            foreach ($local_user_result as $value) {
                 $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
 
                 $local_text .= "

@@ -121,6 +121,7 @@ class API
             'chat_id' => $this->chat_id,
             'message_id' => $message_id,
             'text' => $text,
+            'parse_mode' => $this->parse_mode,
             'reply_markup' => $reply_markup
         );
         $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
@@ -362,15 +363,8 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
-    public function profile_cart(): bool|string
-    {
-        $this->add(text: $this->text_filling['keyboard']['cart']['edit_cart'], action: 'edit_cart', row: 0, col: 0);
-        $this->add(text: $this->text_filling['keyboard']['cart']['ordering'], action: 'ordering', row: 0, col: 1);
 
-        return json_encode($this->keyboard);
-    }
-
-    public function count_product_cart (): bool|string
+    public function count_product_cart(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['number']['1'], action: 'product_cart', type: $this->callback_data_type, variation: 1, row: 0, col: 0);
         $this->add(text: $this->text_filling['keyboard']['number']['2'], action: 'product_cart', type: $this->callback_data_type, variation: 2, row: 0, col: 1);
@@ -383,10 +377,45 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
+    public function edit_order(): bool|string
+    {
+        $i = 1;
+        foreach ($this->mysqli_result as $item) {
+            $this->add(text: '№ ' . $i, row: $i - 1, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['order']['delete'], action: 'delete_product',
+                type: $item['vendor_code'], variation: $item['quality'], row: $i - 1, col: 1);
+
+            if ($item['modify_quality'] > 1)
+                $this->add(text: $this->text_filling['keyboard']['order']['remove'], action: 'remove_product',
+                    type: $item['vendor_code'], variation: $item['quality'], row: $i - 1, col: 2);
+            else
+                $this->add(text: $this->text_filling['keyboard']['order']['minimum_count'], row: $i - 1, col: 2);
+
+            $this->add(text: $this->text_filling['keyboard']['order']['add'], action: 'add_product',
+                type: $item['vendor_code'], variation: $item['quality'], row: $i - 1, col: 3);
+            $i++;
+        }
+
+        $this->add(text: $this->text_filling['keyboard']['order']['cancel'], action: 'back_cart', type: 'cancel', row: $i - 1, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['order']['apply'], action: 'back_cart', type: 'apply', row: $i - 1, col: 1);
+
+        return json_encode($this->keyboard);
+    }
+
+    /* Cart and Favorite */
+
+    public function profile_cart(): bool|string
+    {
+        $this->add(text: $this->text_filling['keyboard']['cart']['edit_cart'], action: 'edit_cart', row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['cart']['ordering'], action: 'ordering', row: 0, col: 1);
+
+        return json_encode($this->keyboard);
+    }
+
     public function profile_favorite(): bool|string
     {
         if ($this->callback_data_action == 'primary')
-        $this->add(text: $this->text_filling['keyboard']['favorite']['next'], action: 'favorite_next', row: 0, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['favorite']['next'], action: 'favorite_next', row: 0, col: 0);
         else {
             $this->add(text: $this->text_filling['keyboard']['favorite']['back'], action: 'favorite_back', row: 0, col: 0);
             $this->add(text: $this->text_filling['keyboard']['favorite']['back'], action: 'favorite_back', row: 0, col: 1);
