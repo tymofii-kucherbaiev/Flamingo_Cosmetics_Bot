@@ -269,13 +269,13 @@ class keyboard
             $back = $key - 1;
 
 
-        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite', type: 'favorite',
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite',
             variation: $this->mysqli_result[$this->callback_data_type - 1]['vendor_code'], row: 0, col: 0);
 
         $this->add(text: $this->mysqli_result[$this->callback_data_type - 1]['price_old'] . ' ' . $this->text_filling['currency'],
             type: $this->mysqli_result[0]['category_id'], variation: $this->callback_data_variation, row: 0, col: 1);
 
-        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_cart', type: 'cart',
+        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_count',
             variation: $this->mysqli_result[$this->callback_data_type - 1]['vendor_code'], row: 0, col: 2);
 
 
@@ -372,13 +372,13 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
     public function count_product_cart (): bool|string
     {
-        $this->add(text: '  1️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 1, row: 0, col: 0);
-        $this->add(text: '  2️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 2, row: 0, col: 1);
-        $this->add(text: '  3️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 3, row: 0, col: 2);
-        $this->add(text: '  4️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 4, row: 0, col: 3);
-        $this->add(text: '  5️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 5, row: 0, col: 4);
-        $this->add(text: '  6️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 6, row: 0, col: 5);
-        $this->add(text: '  7️⃣  ', action: 'count_product', type: $this->callback_data_type, variation: 7, row: 0, col: 6);
+        $this->add(text: $this->text_filling['keyboard']['number']['1'], action: 'product_cart', type: $this->callback_data_type, variation: 1, row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['number']['2'], action: 'product_cart', type: $this->callback_data_type, variation: 2, row: 0, col: 1);
+        $this->add(text: $this->text_filling['keyboard']['number']['3'], action: 'product_cart', type: $this->callback_data_type, variation: 3, row: 0, col: 2);
+        $this->add(text: $this->text_filling['keyboard']['number']['4'], action: 'product_cart', type: $this->callback_data_type, variation: 4, row: 0, col: 3);
+        $this->add(text: $this->text_filling['keyboard']['number']['5'], action: 'product_cart', type: $this->callback_data_type, variation: 5, row: 0, col: 4);
+        $this->add(text: $this->text_filling['keyboard']['number']['6'], action: 'product_cart', type: $this->callback_data_type, variation: 6, row: 0, col: 5);
+        $this->add(text: $this->text_filling['keyboard']['number']['7'], action: 'product_cart', type: $this->callback_data_type, variation: 7, row: 0, col: 6);
 
         return json_encode($this->keyboard);
     }

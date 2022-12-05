@@ -47,11 +47,11 @@ switch ($data['text']) {
 
             foreach ($ur_local as $value) {
                 $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-                $local_sum = $local_sum + $pr_local['price_old'];
+                $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
 
                 $local_text .= "
 —————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>    <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
+<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
 <i>{$pr_local['title']}</i>
 —————————————————————————
 ";

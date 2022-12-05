@@ -12,8 +12,9 @@
  * @var $data array
  */
 
-if ($callback_action != 'product_favorite' and $callback_action != 'product_cart')
+if ($callback_action != 'product_favorite' and $callback_action != 'product_cart' and $callback_action != 'product_count')
     $core->answerCallbackQuery(callback_query_id: $data['id']);
+
 $keyboard->keyboard_type = 'inline_keyboard';
 switch ($callback_action) {
     case 'search_main_menu':
@@ -129,28 +130,34 @@ switch ($callback_action) {
         break;
 
 
+    case 'product_count':
+        if ($mysqli->query("SELECT * FROM users_cart_products WHERE vendor_code LIKE $callback_variation AND user_id LIKE $user_id")->rowCount() == 1)
+            $core->answerCallbackQuery($text_filling['callback']['product_cart_false'], $data['id'], true);
+        else {
+            $keyboard->callback_data_type = $callback_variation;
+            $callback = json_decode($core->sendMessage('Выберите количество:', $keyboard->count_product_cart()), true);
+            $mysqli->query("CALL PC_update('service_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+        }
+        break;
+
+
     case 'product_favorite':
-
-
-
-
-
     case 'product_cart':
-    $keyboard->callback_data_type = $callback_variation;
-        $core->sendMessage('Выберите количество:', $keyboard->count_product_cart());
 
+        if ($callback_action == 'product_cart') {
+            $data_local = "$user_id, $callback_type, $callback_variation";
+            $table_name = 'cart';
+        } else {
+            $table_name = 'favorite';
+            $data_local = "$user_id, $callback_variation";
+        }
 
+        $pr_local = $mysqli->query("CALL PC_insert('users_{$table_name}_products', '*', '$data_local')")->fetch();
 
-//        if ($callback_action == 'product_cart')
-//            $data_local = "$user_id, $callback_variation, 1";
-//        else
-//            $data_local = "$user_id, $callback_variation";
-//
-//    $pr_local = $mysqli->query("CALL PC_insert('users_{$callback_type}_products', '*', '$data_local')")->fetch();
-//
-//        if ($pr_local['error'])
-//            $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_false'], $data['id'], true);
-//        else
+        if ($pr_local['error'])
+            $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_false'], $data['id'], true);
+        else
             $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_true'], $data['id']);
+        $core->deleteMessage($mysqli_result_users['service_id']);
         break;
 }
