@@ -363,7 +363,6 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
-
     public function count_product_cart(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['number']['1'], action: 'product_cart', type: $this->callback_data_type, variation: 1, row: 0, col: 0);

@@ -194,28 +194,31 @@ switch ($callback_action) {
 
         }
 
+        if ($mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id AND is_status LIKE TRUE")->rowCount() == 0) {
+            $core->deleteMessage($mysqli_result_users['message_id']);
+        } else {
+            $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+            $keyboard->keyboard_type = 'inline_keyboard';
+            $local_text = "Ваша корзина:\n";
+            $local_sum = 0;
+            $local_num = 1;
 
-        $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
-        $keyboard->keyboard_type = 'inline_keyboard';
-        $local_text = "Ваша корзина:\n";
-        $local_sum = 0;
-        $local_num = 1;
+            foreach ($local_user_result as $value) {
+                $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+                $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
 
-        foreach ($local_user_result as $value) {
-            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-            $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
-
-            $local_text .= "
+                $local_text .= "
 —————————————————————————
 <b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
 <i>{$pr_local['title']}</i>
 —————————————————————————
 ";
-            $local_num++;
-        }
+                $local_num++;
+            }
 
-        $local_text .= "\n <b>Общая сумма заказа:</b> $local_sum {$text_filling['currency']}";
-        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->profile_cart());
+            $local_text .= "\n <b>Общая сумма заказа:</b> $local_sum {$text_filling['currency']}";
+            $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->profile_cart());
+        }
         break;
 
     case 'delete_product':
@@ -299,6 +302,9 @@ switch ($callback_action) {
         $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
         break;
 
+    case 'ordering':
+
+        break;
 
     case 'product_favorite':
     case 'product_cart':
