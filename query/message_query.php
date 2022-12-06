@@ -51,8 +51,14 @@ switch ($data['text']) {
 ";
                 $local_num++;
             }
+            if ($local_sum < 1000) {
+                $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
+                $local_text .= "\n <b>📦 Доставка:</b> 100 {$text_filling['currency']} (Беслпатная от 1000 {$text_filling['currency']})";
+                $local_sum = $local_sum + 100;
+            } else
+                $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
 
-            $local_text .= "\n <b>Общая сумма заказа:</b> $local_sum {$text_filling['currency']}";
+            $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
             $callback = json_decode($core->sendMessage($local_text, $keyboard->profile_cart()), true);
         } else
             $callback = json_decode($core->sendMessage($text_filling['message']['cart']['null']), true);
