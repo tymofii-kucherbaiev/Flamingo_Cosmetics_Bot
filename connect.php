@@ -12,6 +12,9 @@ if (file_get_contents('php://input')) {
     require $_SERVER['DOCUMENT_ROOT'] . '/config/function.php';
     require $_SERVER['DOCUMENT_ROOT'] . '/config/config.php';
 
+    $text_filling = json_decode(file_get_contents('./config/message_control.json'), true)['content'];
+    $input = json_decode(file_get_contents('php://input'), true);
+
     $mysqli_option = array(
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -20,11 +23,14 @@ if (file_get_contents('php://input')) {
     $mysqli = new PDO("mysql:host=$db_hostname;dbname=$db_database", $db_username, $db_password,
         $mysqli_option);
 
-    $core = new API($local_access_token);
+    $function = new other();
+    $function->mysqli_link = $mysqli;
+    $function->text_filling = $text_filling;
+
+    $core = new api($local_access_token);
     $core->parse_mode = 'html';
 
-    $text_filling = json_decode(file_get_contents('./config/message_control.json'), true)['content'];
-    $input = json_decode(file_get_contents('php://input'), true);
+
 
     $keyboard = new keyboard($text_filling);
 

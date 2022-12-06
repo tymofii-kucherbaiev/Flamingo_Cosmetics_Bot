@@ -2,7 +2,8 @@
 /**
  * @var $mysqli mysqli_result
  * @var $mysqli_result_users mysqli_result
- * @var $core API
+ * @var $core api
+ * @var $function other
  * @var $keyboard keyboard
  * @var $text_filling array
  * @var $callback_action string
@@ -141,34 +142,11 @@ switch ($callback_action) {
         break;
 
     case 'edit_cart':
-        $keyboard->mysqli_result = $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
-        $keyboard->keyboard_type = 'inline_keyboard';
-        $local_text = "Ваша корзина:\n";
-        $local_sum = 0;
-        $local_num = 1;
+        $keyboard->mysqli_result =
+        $function->mysqli_result =
+            $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
 
-        foreach ($local_user_result as $value) {
-            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-            $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
-
-            $local_text .= "
-—————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
-<i>{$pr_local['title']}</i>
-—————————————————————————
-";
-            $local_num++;
-        }
-
-        if ($local_sum < 1000) {
-            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
-            $local_text .= "\n <b>📦 Доставка:</b> 100 {$text_filling['currency']} (Беслпатная от 1000 {$text_filling['currency']})";
-            $local_sum = $local_sum + 100;
-        } else
-            $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
-
-        $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
-        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
+        $core->editMessageText($function->profile_list(), $data['message']['message_id'], $keyboard->edit_order());
         break;
 
     case 'back_cart':
@@ -231,114 +209,42 @@ switch ($callback_action) {
                 $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
 
             $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
-            $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->profile_cart());
+            $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->profile_list());
         }
         break;
 
     case 'delete_product':
         $mysqli->query("UPDATE users_cart_products SET is_status = FALSE WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type");
-        $keyboard->mysqli_result = $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id
-                                    AND is_status LIKE TRUE")->fetchAll();
 
-        $keyboard->keyboard_type = 'inline_keyboard';
-        $local_text = "Ваша корзина:\n";
-        $local_sum = 0;
-        $local_num = 1;
+        $keyboard->mysqli_result =
+        $function->mysqli_result =
+            $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id AND is_status LIKE TRUE")->fetchAll();
 
-        foreach ($local_user_result as $value) {
-            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-            $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
-
-            $local_text .= "
-—————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
-<i>{$pr_local['title']}</i>
-—————————————————————————
-";
-            $local_num++;
-        }
-
-        if ($local_sum < 1000) {
-            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
-            $local_text .= "\n <b>📦 Доставка:</b> 100 {$text_filling['currency']} (Беслпатная от 1000 {$text_filling['currency']})";
-            $local_sum = $local_sum + 100;
-        } else
-            $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
-
-        $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
-        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
+        $core->editMessageText($function->profile_list(), $data['message']['message_id'], $keyboard->edit_order());
         break;
 
     case 'add_product':
         $mysqli->query("UPDATE users_cart_products SET modify_quality = modify_quality + 1 WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type");
-        $keyboard->mysqli_result = $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id
-                                    AND is_status LIKE TRUE")->fetchAll();
+        $keyboard->mysqli_result =
+        $function->mysqli_result =
+            $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id AND is_status LIKE TRUE")->fetchAll();
 
-        $keyboard->keyboard_type = 'inline_keyboard';
-        $local_text = "Ваша корзина:\n";
-        $local_sum = 0;
-        $local_num = 1;
-
-        foreach ($local_user_result as $value) {
-            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-            $local_sum = $local_sum + ($pr_local['price_old'] * $value['modify_quality']);
-
-            $local_text .= "
-—————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['modify_quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
-<i>{$pr_local['title']}</i>
-—————————————————————————
-";
-            $local_num++;
-        }
-
-        if ($local_sum < 1000) {
-            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
-            $local_text .= "\n <b>📦 Доставка:</b> 100 {$text_filling['currency']} (Беслпатная от 1000 {$text_filling['currency']})";
-            $local_sum = $local_sum + 100;
-        } else
-            $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
-
-        $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
-        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
+        $core->editMessageText($function->profile_list(true), $data['message']['message_id'], $keyboard->edit_order());
         break;
 
     case 'remove_product':
         $mysqli->query("UPDATE users_cart_products SET modify_quality = modify_quality - 1 WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type");
-        $keyboard->mysqli_result = $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id
-                                    AND is_status LIKE TRUE")->fetchAll();
 
-        $keyboard->keyboard_type = 'inline_keyboard';
-        $local_text = "Ваша корзина:\n";
-        $local_sum = 0;
-        $local_num = 1;
+        $keyboard->mysqli_result =
+        $function->mysqli_result =
+            $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id AND is_status LIKE TRUE")->fetchAll();
 
-        foreach ($local_user_result as $value) {
-            $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-            $local_sum = $local_sum + ($pr_local['price_old'] * $value['modify_quality']);
 
-            $local_text .= "
-—————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['modify_quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
-<i>{$pr_local['title']}</i>
-—————————————————————————
-";
-            $local_num++;
-        }
-
-        if ($local_sum < 1000) {
-            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
-            $local_text .= "\n <b>📦 Доставка:</b> 100 {$text_filling['currency']} (Беслпатная от 1000 {$text_filling['currency']})";
-            $local_sum = $local_sum + 100;
-        } else
-            $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
-
-        $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
-        $core->editMessageText($local_text, $data['message']['message_id'], $keyboard->edit_order());
+        $core->editMessageText($function->profile_list(true), $data['message']['message_id'], $keyboard->edit_order());
         break;
 
     case 'ordering':
-
+        
         break;
 
     case 'product_favorite':

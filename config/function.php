@@ -1,6 +1,6 @@
 <?php
 
-class API
+class api
 {
     /* ID пользователя (чата) */
     public int $chat_id;
@@ -403,7 +403,7 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
     /* Cart and Favorite */
 
-    public function profile_cart(): bool|string
+    public function profile_list(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['cart']['edit_cart'], action: 'edit_cart', row: 0, col: 0);
         $this->add(text: $this->text_filling['keyboard']['cart']['ordering'], action: 'ordering', row: 0, col: 1);
@@ -423,4 +423,46 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
+}
+
+class other
+{
+    public array|null $mysqli_result;
+    public object|null $mysqli_link;
+    public array|null $text_filling;
+
+    public function profile_list ($action = FALSE): string
+    {
+        $local_text = "Ваша корзина:\n";
+        $local_sum = 0;
+        $local_num = 1;
+
+        foreach ($this->mysqli_result as $value) {
+            if ($action === TRUE)
+                $quality = $value['modify_quality'];
+            else
+                $quality = $value['quality'];
+
+            $pr_local = $this->mysqli_link->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+            $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
+
+            $local_text .= "
+—————————————————————————
+<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>$quality шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$this->text_filling['currency']}
+<i>{$pr_local['title']}</i>
+—————————————————————————
+";
+            $local_num++;
+        }
+
+        if ($local_sum < 1000) {
+            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$this->text_filling['currency']}";
+            $local_text .= "\n <b>📦 Доставка:</b> 100 {$this->text_filling['currency']} (Беслпатная от 1000 {$this->text_filling['currency']})";
+            $local_sum = $local_sum + 100;
+        } else
+            $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
+
+        $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$this->text_filling['currency']}";
+        return $local_text;
+    }
 }

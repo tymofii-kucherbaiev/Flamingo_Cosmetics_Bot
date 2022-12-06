@@ -1,7 +1,7 @@
 <?php
 /**
  * @var $input array
- * @var $core API
+ * @var $core api
  * @var $mysqli mysqli_result
  * @var $keyboard keyboard
  */

@@ -2,9 +2,10 @@
 /**
  * @var $mysqli_result_users mysqli_result
  * @var $mysqli mysqli_result
- * @var $core API
+ * @var $core api
+ * @var $function other
  * @var $keyboard keyboard
- * @var $data
+ * @var $data array
  * @var $user_id integer
  * @var $text_filling array
  * @var $bool_via_bot boolean
@@ -31,35 +32,14 @@ switch ($data['text']) {
         break;
 
     case $text_filling['keyboard']['main']['cart']:
-        $local_user_result = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+        $keyboard->mysqli_result =
+        $function->mysqli_result =
+        $local_user_result =
+            $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
 
         if ($local_user_result) {
             $keyboard->keyboard_type = 'inline_keyboard';
-            $local_text = "Ваша корзина:\n";
-            $local_sum = 0;
-            $local_num = 1;
-
-            foreach ($local_user_result as $value) {
-                $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-                $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
-
-                $local_text .= "
-—————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
-<i>{$pr_local['title']}</i>
-—————————————————————————
-";
-                $local_num++;
-            }
-            if ($local_sum < 1000) {
-                $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
-                $local_text .= "\n <b>📦 Доставка:</b> 100 {$text_filling['currency']} (Беслпатная от 1000 {$text_filling['currency']})";
-                $local_sum = $local_sum + 100;
-            } else
-                $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
-
-            $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
-            $callback = json_decode($core->sendMessage($local_text, $keyboard->profile_cart()), true);
+            $callback = json_decode($core->sendMessage($function->profile_list(), $keyboard->profile_list()), true);
         } else
             $callback = json_decode($core->sendMessage($text_filling['message']['cart']['null']), true);
         break;

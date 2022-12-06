@@ -1,6 +1,6 @@
 <?php
 /**
- * @var $core API
+ * @var $core api
  * @var $db_hostname string
  * @var $db_database string
  * @var $db_username string
