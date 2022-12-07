@@ -171,9 +171,9 @@ class keyboard
         ];
     }
 
-    public function close(): bool|string
+    public function product_description(): bool|string
     {
-        $this->add(text: "Закрыть", action: 'close', row: 0, col: 0);
+        $this->add(text: "Закрыть", action: 'close', type: 'description', row: 0, col: 0);
         return json_encode($this->keyboard);
     }
 
@@ -203,11 +203,18 @@ class keyboard
                 break;
 
             case 'inline_query':
-                $button =
-                    [
-                        "text" => $text,
-                        "switch_inline_query_current_chat" => $this->mysqli_result[$this->callback_data_type - 1]['vendor_code']
-                    ];
+                if ($this->callback_data_type == 'favorite')
+                    $button =
+                        [
+                            "text" => $text,
+                            "switch_inline_query_current_chat" => $this->mysqli_result['vendor_code']
+                        ];
+                else
+                    $button =
+                        [
+                            "text" => $text,
+                            "switch_inline_query_current_chat" => $this->mysqli_result[$this->callback_data_type - 1]['vendor_code']
+                        ];
 
                 $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                 break;
@@ -221,12 +228,6 @@ class keyboard
                 $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                 break;
         }
-    }
-
-    public function product_description(): bool|string
-    {
-        $this->add(text: "Закрыть", action: 'close', type: 'description', row: 0, col: 0);
-        return json_encode($this->keyboard);
     }
 
     public function main_menu(): bool|string
@@ -356,7 +357,7 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
         $this->add(text: $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'], row: 0, col: 1);
 
-        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_cart', type: 'cart', variation: $this->mysqli_result['vendor_code'], row: 0, col: 2);
+        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_count', type: 'cart', variation: $this->mysqli_result['vendor_code'], row: 0, col: 2);
 
         $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close', type: 'extra', row: 1, col: 0);
 
@@ -423,6 +424,26 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
+    public function product_card(): bool|string
+    {
+
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite',
+            variation: $this->mysqli_result['vendor_code'], row: 0, col: 0);
+
+        $this->add(text: $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'],
+            type: $this->mysqli_result['category_id'], row: 0, col: 1);
+
+        $this->add(text: $this->text_filling['keyboard']['product']['cart'], row: 0, col: 2);
+
+        $this->add(text: $this->text_filling['keyboard']['product']['description'], row: 1, col: 0);
+//
+        $this->add(keyboard_data_type: 'inline_query', text: $this->text_filling['keyboard']['product']['another_color'], type: 'asd', row: 1, col: 1);
+//
+        $this->add(text: $this->text_filling['keyboard']['back_main_search'], row: 2, col: 0);
+
+        return json_encode($this->keyboard);
+    }
+
 }
 
 class other
@@ -431,7 +452,7 @@ class other
     public object|null $mysqli_link;
     public array|null $text_filling;
 
-    public function profile_list ($action = FALSE): string
+    public function profile_list($action = FALSE): string
     {
         $local_text = "Ваша корзина:\n";
         $local_sum = 0;

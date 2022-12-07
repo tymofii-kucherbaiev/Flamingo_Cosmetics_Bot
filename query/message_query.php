@@ -84,12 +84,13 @@ switch ($data['text']) {
         break;
 
     default:
-        if ($bool_via_bot === TRUE)
-            if (iconv_strlen($data['text']) == 14) {
-                $data['text'] = substr($data['text'], 1);
+        if (iconv_strlen($data['text']) == 14) {
+            $data['text'] = substr($data['text'], 1);
+            $keyboard->keyboard_type = 'inline_keyboard';
+            if ($bool_via_bot === TRUE) {
 
 
-                $keyboard->keyboard_type = 'inline_keyboard';
+
 
 
                 $keyboard->mysqli_result = $local_mysqli_result =
@@ -100,7 +101,17 @@ switch ($data['text']) {
                     $keyboard->other_variation_product()), true);
 
                 $mysqli->query("CALL PC_update('service_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
-            }
+            } else {
+                $keyboard->callback_data_action = $data['text'];
+                $keyboard->callback_data_type = 'favorite';
+
+                $keyboard->mysqli_result = $mysqli_product_card =
+                    $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();
+
+                $core->sendMessage('hello', $keyboard->product_card());
+
+                }
+        }
         break;
 }
 
