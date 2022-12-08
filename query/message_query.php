@@ -108,8 +108,7 @@ switch ($data['text']) {
                 $keyboard->mysqli_result = $mysqli_product_card =
                     $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();
 
-                $core->sendMessage('hello', $keyboard->product_card());
-
+                $callback = json_decode($core->sendPhoto($mysqli_product_card['title'], $mysqli_product_card['image_id'],$keyboard->product_card()), true);
                 }
         }
         break;

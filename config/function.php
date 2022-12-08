@@ -141,6 +141,7 @@ class api
 class keyboard
 {
     public string $keyboard_type = 'keyboard';
+    public string $user_id;
 
     /* construct */
     public bool $one_time_keyboard = false;
@@ -271,7 +272,12 @@ class keyboard
             $back = $key - 1;
 
 
-        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite',
+        if ($this->mysqli_link->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $this->user_id AND vendor_code LIKE {$this->mysqli_result[$this->callback_data_type - 1]['vendor_code']}")->rowCount() == 1)
+            $local_variation_favorite = 'fill';
+        else
+            $local_variation_favorite = 'null';
+
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite_' . $local_variation_favorite], action: 'product_favorite',
             variation: $this->mysqli_result[$this->callback_data_type - 1]['vendor_code'], row: 0, col: 0);
 
         $this->add(text: $this->mysqli_result[$this->callback_data_type - 1]['price_old'] . ' ' . $this->text_filling['currency'],
@@ -353,7 +359,12 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
     public function other_variation_product(): bool|string
     {
-        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite', type: 'favorite', variation: $this->mysqli_result['vendor_code'], row: 0, col: 0);
+        if ($this->mysqli_link->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $this->user_id AND vendor_code LIKE {$this->mysqli_result['vendor_code']}")->rowCount() == 1)
+            $local_variation_favorite = 'fill';
+        else
+            $local_variation_favorite = 'null';
+
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite_' . $local_variation_favorite], action: 'product_favorite', type: 'favorite', variation: $this->mysqli_result['vendor_code'], row: 0, col: 0);
 
         $this->add(text: $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'], row: 0, col: 1);
 
@@ -427,19 +438,24 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
     public function product_card(): bool|string
     {
 
-        $this->add(text: $this->text_filling['keyboard']['product']['favorite'], action: 'product_favorite',
+        if ($this->mysqli_link->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $this->user_id AND vendor_code LIKE {$this->mysqli_result['vendor_code']}")->rowCount() == 1)
+            $local_variation_favorite = 'fill';
+        else
+            $local_variation_favorite = 'null';
+
+        $this->add(text: $this->text_filling['keyboard']['product']['favorite_' . $local_variation_favorite], action: 'product_favorite',
             variation: $this->mysqli_result['vendor_code'], row: 0, col: 0);
 
         $this->add(text: $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'],
             type: $this->mysqli_result['category_id'], row: 0, col: 1);
 
-        $this->add(text: $this->text_filling['keyboard']['product']['cart'], row: 0, col: 2);
+        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_count',
+            variation: $this->mysqli_result['vendor_code'], row: 0, col: 2);
 
-        $this->add(text: $this->text_filling['keyboard']['product']['description'], row: 1, col: 0);
-//
-        $this->add(keyboard_data_type: 'inline_query', text: $this->text_filling['keyboard']['product']['another_color'], type: 'asd', row: 1, col: 1);
-//
-        $this->add(text: $this->text_filling['keyboard']['back_main_search'], row: 2, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['product']['description'], action: 'description',
+            type: $this->mysqli_result['vendor_code'], row: 1, col: 0);
+        //
+        $this->add(text: $this->text_filling['keyboard']['back_main_search'],action: 'close', type: 'favorite', row: 2, col: 0);
 
         return json_encode($this->keyboard);
     }

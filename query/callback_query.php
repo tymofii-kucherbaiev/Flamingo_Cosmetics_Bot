@@ -126,7 +126,41 @@ switch ($callback_action) {
             $core->deleteMessage($mysqli_result_users['service_id']);
         elseif ($callback_type == 'extra')
             $core->deleteMessage($data['message']['message_id']);
-        else
+        elseif ($callback_type == 'favorite') {
+            $core->deleteMessage($data['message']['message_id']);
+            $core->deleteMessage($mysqli_result_users['service_id']);
+            $local_user_result = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id")->fetchAll();
+
+            if ($local_user_result) {
+
+                $quality_row = count($local_user_result);
+                if ($quality_row > 5) {
+                    $keyboard->keyboard_type = 'inline_keyboard';
+                    $keyboard->callback_data_action = 'primary';
+                }
+
+                $local_text = "Ваш список желаемого:\n";
+                $local_num = 1;
+
+                foreach ($local_user_result as $value) {
+                    $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+
+                    $local_text .= "
+—————————————————————————
+<b>№$local_num   /{$pr_local['vendor_code']}</b>    <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
+<i>{$pr_local['title']}</i>
+—————————————————————————
+";
+                    $local_num++;
+                }
+                if ($quality_row > 5)
+                    $callback = json_decode($core->sendMessage($local_text, $keyboard->profile_favorite()), true);
+                else
+                    $callback = json_decode($core->sendMessage($local_text), true);
+            } else
+                $callback = json_decode($core->sendMessage($text_filling['message']['favorite']['null']), true);
+            $mysqli->query("CALL PC_update('message_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+        } else
             $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
 
@@ -244,7 +278,7 @@ switch ($callback_action) {
         break;
 
     case 'ordering':
-        
+
         break;
 
     case 'product_favorite':
@@ -260,9 +294,12 @@ switch ($callback_action) {
 
         $pr_local = $mysqli->query("CALL PC_insert('users_{$table_name}_products', '*', '$data_local')")->fetch();
 
-        if ($pr_local['error'])
+        if ($pr_local['error']) {
+            if ($table_name == 'favorite') {
+                $mysqli->query("DELETE FROM users_favorite_products WHERE user_id LIKE $user_id AND users_favorite_products.vendor_code LIKE $callback_variation");
+            }
             $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_false'], $data['id'], true);
-        else
+        } else
             $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_true'], $data['id']);
         $core->deleteMessage($mysqli_result_users['service_id']);
         break;

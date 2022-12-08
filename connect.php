@@ -32,7 +32,6 @@ if (file_get_contents('php://input')) {
 
 
 
-    $keyboard = new keyboard($text_filling);
 
 
     $bool_inline_query = array_key_exists('inline_query', $input);
@@ -62,8 +61,10 @@ if (file_get_contents('php://input')) {
     $core->chat_id = $data['from']['id'];
     $mysqli_result_users = $mysqli->query("CALL PC_user($user_id, '$user_username', '$user_first_name', '$user_last_name')")->fetch();
 
+    $keyboard = new keyboard($text_filling);
     $keyboard->mysqli_result = $mysqli_result_users;
     $keyboard->mysqli_link = $mysqli;
+    $keyboard->user_id = $user_id;
 
     if ($bool_inline_query === TRUE) {
         require $_SERVER['DOCUMENT_ROOT'] . '/query/inline_query.php';
