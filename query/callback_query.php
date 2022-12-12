@@ -11,6 +11,8 @@
  * @var $callback_variation string
  * @var $user_id string
  * @var $data array
+ * @var $inline_keyboard array
+ * @var $message_id string
  */
 
 if ($callback_action != 'product_favorite' and $callback_action != 'product_cart' and $callback_action != 'product_count')
@@ -31,7 +33,7 @@ switch ($callback_action) {
             $keyboard->callback_data_type = $callback_variation;
             $callback = json_decode($core->sendMessage($text_filling['message']['search']['callback_' . $callback_variation],
                 $keyboard->search_main_product()), true);
-            $mysqli->query("CALL PC_update('callback_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
         } else {
             $keyboard->callback_data_type = $callback_type;
             $core->editMessageText($text_filling['message']['search']['callback_' . $callback_type],
@@ -92,7 +94,7 @@ switch ($callback_action) {
 
             $callback = json_decode($core->sendPhoto($mysqli_product_card[0]['title'],
                 $mysqli_product_card[0]['image_id'], $keyboard->search_product_list()), TRUE);
-            $mysqli->query("CALL PC_update('callback_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
         }
         $core->deleteMessage($mysqli_result_users['service_id']);
         break;
@@ -106,7 +108,7 @@ switch ($callback_action) {
             $keyboard->callback_data_type = $callback_type;
 
             $callback = json_decode($core->sendMessage($text_filling['message']['search']['main'], $keyboard->search_main_menu()), TRUE);
-            $mysqli->query("CALL PC_update('callback_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
         } else {
 
             $core->editMessageText($text_filling['message']['search']['main'], $mysqli_result_users['callback_id'], $keyboard->search_main_menu());
@@ -118,7 +120,7 @@ switch ($callback_action) {
 
         $callback = json_decode($core->sendMessage($sql_result_local['caption'],
             $keyboard->product_description()), TRUE);
-        $mysqli->query("CALL PC_update('service_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+        $mysqli->query("CALL PC_update('service_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
         break;
 
     case 'close':
@@ -159,7 +161,16 @@ switch ($callback_action) {
                     $callback = json_decode($core->sendMessage($local_text), true);
             } else
                 $callback = json_decode($core->sendMessage($text_filling['message']['favorite']['null']), true);
-            $mysqli->query("CALL PC_update('message_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+        } elseif ($callback_type == 'cart') {
+            $keyboard->mysqli_result =
+            $function->mysqli_result =
+            $local_user_result =
+                $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+            $mysqli->query("CALL PC_update('order_position = NULL', '$user_id', 'users')");
+
+            $keyboard->keyboard_type = 'inline_keyboard';
+            $core->editMessageText($function->profile_list(), $message_id, $keyboard->profile_list());
         } else
             $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
@@ -171,7 +182,7 @@ switch ($callback_action) {
             $core->answerCallbackQuery(callback_query_id: $data['id']);
             $keyboard->callback_data_type = $callback_variation;
             $callback = json_decode($core->sendMessage('Выберите количество:', $keyboard->count_product_cart()), true);
-            $mysqli->query("CALL PC_update('service_id', '{$callback['result']['message_id']}', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('service_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
         }
         break;
 
@@ -277,9 +288,133 @@ switch ($callback_action) {
         $core->editMessageText($function->profile_list(true), $data['message']['message_id'], $keyboard->edit_order());
         break;
 
-    case 'ordering':
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # Блок оформления заказа
+
+    case 'ordering':
+        if ($mysqli_result_users['remember_order']) {
+
+            $keyboard->mysqli_result = $mysqli_result_users;
+
+
+
+
+        }
+
+
+        if ($mysqli_result_users['phone_number'])
+            $local_phone = '+' . $mysqli_result_users['phone_number'];
+
+        $caption = "————————————————————————
+<b>Имя и Фамилия:</b> <i>{$mysqli_result_users['profile_first_name']} {$mysqli_result_users['profile_last_name']}</i>
+<b>Телефон:</b> <i>$local_phone</i>
+————————————————————————
+<b>Адресс доставки:</b> <i>{$mysqli_result_users['address_pickup']}</i>
+<b>Комментарий:</b> <i>{$res_us['is_comment']}</i>";
+
+
+        $keyboard->mysqli_result =
+            $mysqli->query("CALL PC_update('order_position = \'{$callback_variation}\'', '$user_id', 'users')")->fetch();
+        $keyboard->callback_data_variation = $callback_variation;
+
+
+
+
+        $core->editMessageText($caption, $message_id, $keyboard->ordering());
         break;
+
+
+    case 'order_confirm':
+        $res = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+
+
+        $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$mysqli_result_users['profile_first_name']}\', \'{$mysqli_result_users['profile_last_name']}\', 1000, \'Бесплатно\', \'{$mysqli_result_users['address_pickup']}\', {$mysqli_result_users['phone_number']}, \'Ты пидор\', \'Новый заказ\', 1')");
+
+        $res_us = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
+
+        $local_text = "";
+        $local_num = 1;
+        foreach ($res as $value) {
+            $mysqli->query("CALL PC_insert('order_products', '*', '{$res_us['id']}, $user_id, {$value['vendor_code']}, {$value['quality']}')");
+            $res_prod = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+
+            $local_text .= "<b>№$local_num   /{$value['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$res_prod['price_old']}</b> {$text_filling['currency']}
+<i>{$res_prod['title']}</i>
+————————————————————————
+";
+            $local_num++;
+        }
+
+
+        foreach ($mysqli->query("SELECT * FROM users WHERE role LIKE 'administrator'")->fetchAll() as $value) {
+
+
+            $caption = "<b>НОВЫЙ ЗАКАЗ!</b>
+Заказ №: {$res_us['id']} 
+————————————————————————
+<b>Имя и Фамилия:</b> <code>{$mysqli_result_users['profile_first_name']} {$mysqli_result_users['profile_last_name']}</code>
+<b>Телефон:</b> <code>+{$mysqli_result_users['phone_number']}</code>
+————————————————————————
+<b>Сумма заказа:</b> <i>{$res_us['payment_amount']} {$text_filling['currency']}</i>
+<b>Доставка:</b> <i>{$res_us['is_delivery']}</i>
+————————————————————————
+<b>Адресс доставки:</b> <i>{$res_us['address_pickup']}</i>
+<b>Комментарий:</b> <i>{$res_us['is_comment']}</i>
+
+##############################
+##############################
+————————————————————————
+$local_text
+            ";
+
+            $core->chat_id = $value['user_id'];
+            $core->sendMessage($caption, $keyboard->admin_order_control());
+        }
+//$mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
+        break;
+
+    case 'set_phone':
+        if ($callback_type == 'set_name')
+            $mysqli->query("CALL PC_update('profile_first_name = \'{$inline_keyboard[0][1]['text']}\'', '$user_id', 'users')");
+        break;
+
+    /* Добавление в избранное и корзину */
 
     case 'product_favorite':
     case 'product_cart':
@@ -303,4 +438,7 @@ switch ($callback_action) {
             $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_true'], $data['id']);
         $core->deleteMessage($mysqli_result_users['service_id']);
         break;
+
+    default:
+        $core->answerCallbackQuery(callback_query_id: $data['id']);
 }

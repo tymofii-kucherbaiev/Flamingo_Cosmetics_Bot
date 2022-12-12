@@ -19,7 +19,7 @@ class api
         $this->url = "https://api.telegram.org/bot$token/";
     }
 
-    public function sendMessage($text, $reply_markup = NULL): bool|array|string
+    public function sendMessage($text = 'Hello World', $reply_markup = NULL): bool|array|string
     {
         if ($reply_markup == 'close')
             $request_params = array(
@@ -161,7 +161,7 @@ class keyboard
     /* Private */
     private array $keyboard;
 
-    public function __construct($text_filling)
+    public function __construct($text_filling = NULL)
     {
         $this->text_filling = $text_filling;
 
@@ -178,7 +178,7 @@ class keyboard
         return json_encode($this->keyboard);
     }
 
-    private function add($keyboard_data_type = 'callback_data', $text = 'Hello World!', $action = NULL, $type = NULL,
+    private function add($keyboard_data_type = 'callback_data', $text = NULl, $url = NULL, $action = NULL, $type = NULL,
                          $variation = NULL, $row = NULL, $col = NULL): void
     {
         switch ($keyboard_data_type) {
@@ -194,11 +194,19 @@ class keyboard
                 break;
 
             case 'callback_data':
-                $button =
-                    [
-                        "text" => $text,
-                        $keyboard_data_type => "action:$action|type:$type|variation:$variation"
-                    ];
+                if ($url)
+                    $button =
+                        [
+                            "url" => "tg://user?id=$url",
+                            "text" => $text,
+                            $keyboard_data_type => "action:$action|type:$type|variation:$variation"
+                        ];
+                else
+                    $button =
+                        [
+                            "text" => $text,
+                            $keyboard_data_type => "action:$action|type:$type|variation:$variation"
+                        ];
 
                 $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                 break;
@@ -233,10 +241,10 @@ class keyboard
 
     public function main_menu(): bool|string
     {
-        $this->add(NULL, text: $this->text_filling['keyboard']['main']['search'], row: 0, col: 0);
-        $this->add(NULL, text: $this->text_filling['keyboard']['main']['favorite'], row: 1, col: 0);
-        $this->add(NULL, text: $this->text_filling['keyboard']['main']['help'], row: 1, col: 1);
-        $this->add(NULL, text: $this->text_filling['keyboard']['main']['cart'], row: 1, col: 2);
+        $this->add(text: $this->text_filling['keyboard']['main']['search'], row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['main']['favorite'], row: 1, col: 0);
+//        $this->add(NULL, text: $this->text_filling['keyboard']['main']['help'], row: 1, col: 1);
+        $this->add(text: $this->text_filling['keyboard']['main']['cart'], row: 1, col: 1);
 
         return json_encode($this->keyboard);
     }
@@ -375,6 +383,46 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
+    public function ordering(): bool|string
+    {
+        $local_variation = NULL;
+        switch ($this->callback_data_variation) {
+            case 'set_first_name':
+                $local_variation = 'set_last_name';
+                break;
+
+            case 'set_last_name':
+                $local_variation = 'set_phone';
+                break;
+
+            case 'set_phone':
+                $local_variation = 'set_delivery';
+                break;
+
+            case 'set_delivery':
+                $local_variation = 'set_confirm';
+                break;
+
+            case 'set_confirm':
+                $local_variation = 'set_finish';
+                break;
+        }
+
+        if ($local_variation == 'set_comment') {
+            $this->add(text: $this->text_filling['keyboard']['ordering']['back'] . 'back', action: 'close', type: 'cart', row: 0, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['ordering']['next'] . 'back', action: 'ordering', variation: $local_variation, row: 0, col: 1);
+        } elseif ($local_variation == 'set_finish') {
+            $this->add(text: $this->text_filling['keyboard']['ordering']['back'] . 'finish', action: 'close', type: 'cart', row: 0, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['ordering']['next'] . 'finish', action: 'ordering', variation: $local_variation, row: 0, col: 1);
+
+        } else {
+            $this->add(text: $this->text_filling['keyboard']['ordering']['back'], action: 'close', type: 'cart', row: 0, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['ordering']['next'], action: 'ordering', variation: $local_variation, row: 0, col: 1);
+
+        }
+        return json_encode($this->keyboard);
+    }
+
     public function count_product_cart(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['number']['1'], action: 'product_cart', type: $this->callback_data_type, variation: 1, row: 0, col: 0);
@@ -418,7 +466,7 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
     public function profile_list(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['cart']['edit_cart'], action: 'edit_cart', row: 0, col: 0);
-        $this->add(text: $this->text_filling['keyboard']['cart']['ordering'], action: 'ordering', row: 0, col: 1);
+        $this->add(text: $this->text_filling['keyboard']['cart']['ordering'], action: 'ordering', variation: 'set_first_name', row: 0, col: 1);
 
         return json_encode($this->keyboard);
     }
@@ -455,11 +503,18 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         $this->add(text: $this->text_filling['keyboard']['product']['description'], action: 'description',
             type: $this->mysqli_result['vendor_code'], row: 1, col: 0);
         //
-        $this->add(text: $this->text_filling['keyboard']['back_main_search'],action: 'close', type: 'favorite', row: 2, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close', type: 'favorite', row: 2, col: 0);
 
         return json_encode($this->keyboard);
     }
 
+
+    public function admin_order_control(): bool|string
+    {
+        $this->add(text: '✅ Взять в работу', action: 'take_to_work', row: 0, col: 0);
+
+        return json_encode($this->keyboard);
+    }
 }
 
 class other

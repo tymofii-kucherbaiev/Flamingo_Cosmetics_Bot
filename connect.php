@@ -41,12 +41,15 @@ if (file_get_contents('php://input')) {
         $data = $input['inline_query'];
     } elseif ($bool_callback_query === TRUE) {
         $data = $input['callback_query'];
+        $message_id = $data['message']['message_id'];
+        $inline_keyboard = $data['message']['reply_markup']['inline_keyboard'];
 
         $callback_action = explode(':', explode('|', $data['data'])[0])[1];
         $callback_type = explode(':', explode('|', $data['data'])[1])[1];
         $callback_variation = explode(':', explode('|', $data['data'])[2])[1];
     } else {
         $data = $input['message'];
+        $message_id = $data['message_id'];
 
         $bool_via_bot = array_key_exists('via_bot', $data);
     }
@@ -56,7 +59,6 @@ if (file_get_contents('php://input')) {
     $user_first_name = $data['from']['first_name'];
     $user_last_name = $data['from']['last_name'];
     $user_username = addslashes($data['from']['username']);
-    $message_id = $data['message_id'];
 
     $core->chat_id = $data['from']['id'];
     $mysqli_result_users = $mysqli->query("CALL PC_user($user_id, '$user_username', '$user_first_name', '$user_last_name')")->fetch();
