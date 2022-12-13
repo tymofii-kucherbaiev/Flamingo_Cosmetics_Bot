@@ -91,25 +91,44 @@ switch ($data['text']) {
     default:
         if ($mysqli_result_users['order_position']) {
             $local_variation = NULL;
-            $column = NULL;
+            $set_table = NULL;
+            $complete = FALSE;
             switch ($mysqli_result_users['order_position']) {
-                case 'set_first_name':
-                    $local_variation = 'set_last_name';
-                    $column = 'profile_first_name';
+                case 'set_name':
+
+                    $explode_full_name = explode(' ', $data['text']);
+                    if (!$explode_full_name[1]) {
+                        $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_name']), TRUE);
+                        $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
+                    } else {
+                        $complete = TRUE;
+
+                        $local_variation = 'set_phone';
+                        $set_table = "profile_first_name = \'$explode_full_name[0]\', profile_last_name = \'$explode_full_name[1]\'";
+                    }
+
                     break;
-                case 'set_last_name':
-                    $local_variation = 'set_phone';
-                    $column = 'profile_last_name';
-                    break;
+
                 case 'set_phone':
-                    $local_variation = 'set_delivery';
-                    $column = 'phone_number';
+//                    if () {
+                        $local_variation = 'set_delivery';
+
+                        if (preg_match('/^[0-9]+$/i', $data['text']) == 0 OR iconv_strlen($data['text']) != 12) {
+                            $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_phone']), TRUE);
+                            $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
+                        } else {
+                            $complete = TRUE;
+
+                            $set_table = 'phone_number = ' . $data['text'];
+                        }
+//                    }
                     break;
             }
+            if ($complete) {
 
-            if ($column) {
-                $keyboard->mysqli_result = $mysqli->query("CALL PC_update('$column = \'{$data['text']}\', order_position = \'{$local_variation}\'', '$user_id', 'users')")->fetch();
+                $keyboard->mysqli_result = $mysqli->query("CALL PC_update('$set_table, order_position = \'{$local_variation}\'', '$user_id', 'users')")->fetch();
                 $keyboard->callback_data_variation = $local_variation;
+                $keyboard->keyboard_type = 'inline_keyboard';
 
                 $core->editMessageText($text_filling['message']['order'][$local_variation], $mysqli_result_users['message_id'], $keyboard->ordering());
             }
@@ -133,6 +152,7 @@ switch ($data['text']) {
                     $keyboard->callback_data_action = $data['text'];
                     $keyboard->callback_data_type = 'favorite';
 
+
                     $keyboard->mysqli_result = $mysqli_product_card =
                         $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();
 
@@ -150,4 +170,5 @@ if ($callback)
 
 if ($bool_via_bot === FALSE)
     $core->deleteMessage($mysqli_result_users['callback_id']);
+
 $core->deleteMessage($mysqli_result_users['service_id']);

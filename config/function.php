@@ -387,19 +387,12 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
     {
         $local_variation = NULL;
         switch ($this->callback_data_variation) {
-            case 'set_first_name':
-                $local_variation = 'set_last_name';
-                break;
-
-            case 'set_last_name':
-                $local_variation = 'set_phone';
-                break;
-
-            case 'set_phone':
-                $local_variation = 'set_delivery';
-                break;
 
             case 'set_delivery':
+                $this->add(text: 'ТРЦ Золотое Кольцо', action: 'close', type: 'cart', row: 0, col: 0);
+                $this->add(text: 'ТРЦ Донецк Сити', action: 'close', type: 'cart', row: 0, col: 1);
+                $this->add(text: $this->text_filling['keyboard']['ordering']['cancel'], action: 'close', type: 'cart', row: 1, col: 0);
+
                 $local_variation = 'set_confirm';
                 break;
 
@@ -415,8 +408,8 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
             $this->add(text: $this->text_filling['keyboard']['ordering']['back'] . 'finish', action: 'close', type: 'cart', row: 0, col: 0);
 //            $this->add(text: $this->text_filling['keyboard']['ordering']['next'] . 'finish', action: 'ordering', variation: $local_variation, row: 0, col: 1);
 
-        } else {
-            $this->add(text: $this->text_filling['keyboard']['ordering']['back'], action: 'close', type: 'cart', row: 0, col: 0);
+        } elseif ($this->callback_data_variation != 'set_delivery') {
+            $this->add(text: $this->text_filling['keyboard']['ordering']['cancel'], action: 'close', type: 'cart', row: 0, col: 0);
 //            $this->add(text: $this->text_filling['keyboard']['ordering']['next'], action: 'ordering', variation: $local_variation, row: 0, col: 1);
 
         }
@@ -466,7 +459,7 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
     public function profile_list(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['cart']['edit_cart'], action: 'edit_cart', row: 0, col: 0);
-        $this->add(text: $this->text_filling['keyboard']['cart']['ordering'], action: 'ordering', variation: 'set_first_name', row: 0, col: 1);
+        $this->add(text: $this->text_filling['keyboard']['cart']['ordering'], action: 'ordering', variation: 'set_name', row: 0, col: 1);
 
         return json_encode($this->keyboard);
     }

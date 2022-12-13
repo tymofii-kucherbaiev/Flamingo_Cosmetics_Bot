@@ -163,6 +163,7 @@ switch ($callback_action) {
                 $callback = json_decode($core->sendMessage($text_filling['message']['favorite']['null']), true);
             $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
         } elseif ($callback_type == 'cart') {
+            $core->deleteMessage($mysqli_result_users['service_id']);
             $keyboard->mysqli_result =
             $function->mysqli_result =
             $local_user_result =
@@ -405,11 +406,6 @@ $local_text
             $core->sendMessage($caption, $keyboard->admin_order_control());
         }
 //$mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
-        break;
-
-    case 'set_phone':
-        if ($callback_type == 'set_name')
-            $mysqli->query("CALL PC_update('profile_first_name = \'{$inline_keyboard[0][1]['text']}\'', '$user_id', 'users')");
         break;
 
     /* Добавление в избранное и корзину */
