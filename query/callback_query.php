@@ -333,20 +333,18 @@ switch ($callback_action) {
             $keyboard->mysqli_result = $mysqli_result_users;
 
 
-
+            $caption = "————————————————————————
+<b>Имя и Фамилия:</b> <i>{$mysqli_result_users['profile_first_name']} {$mysqli_result_users['profile_last_name']}</i>
+<b>Телефон:</b> <i>$local_phone</i>
+————————————————————————
+<b>Адресс доставки:</b> <i>{$mysqli_result_users['address_pickup']}</i>
+<b>Комментарий:</b> <i>{$res_us['is_comment']}</i>";
 
         }
 
 
         if ($mysqli_result_users['phone_number'])
             $local_phone = '+' . $mysqli_result_users['phone_number'];
-
-        $caption = "————————————————————————
-<b>Имя и Фамилия:</b> <i>{$mysqli_result_users['profile_first_name']} {$mysqli_result_users['profile_last_name']}</i>
-<b>Телефон:</b> <i>$local_phone</i>
-————————————————————————
-<b>Адресс доставки:</b> <i>{$mysqli_result_users['address_pickup']}</i>
-<b>Комментарий:</b> <i>{$res_us['is_comment']}</i>";
 
 
         $keyboard->mysqli_result =
@@ -356,7 +354,7 @@ switch ($callback_action) {
 
 
 
-        $core->editMessageText($caption, $message_id, $keyboard->ordering());
+        $core->editMessageText($text_filling['message']['order'][$callback_variation], $message_id, $keyboard->ordering());
         break;
 
 

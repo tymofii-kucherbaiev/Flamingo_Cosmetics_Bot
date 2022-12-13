@@ -410,14 +410,14 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
         if ($local_variation == 'set_comment') {
             $this->add(text: $this->text_filling['keyboard']['ordering']['back'] . 'back', action: 'close', type: 'cart', row: 0, col: 0);
-            $this->add(text: $this->text_filling['keyboard']['ordering']['next'] . 'back', action: 'ordering', variation: $local_variation, row: 0, col: 1);
+//            $this->add(text: $this->text_filling['keyboard']['ordering']['next'] . 'back', action: 'ordering', variation: $local_variation, row: 0, col: 1);
         } elseif ($local_variation == 'set_finish') {
             $this->add(text: $this->text_filling['keyboard']['ordering']['back'] . 'finish', action: 'close', type: 'cart', row: 0, col: 0);
-            $this->add(text: $this->text_filling['keyboard']['ordering']['next'] . 'finish', action: 'ordering', variation: $local_variation, row: 0, col: 1);
+//            $this->add(text: $this->text_filling['keyboard']['ordering']['next'] . 'finish', action: 'ordering', variation: $local_variation, row: 0, col: 1);
 
         } else {
             $this->add(text: $this->text_filling['keyboard']['ordering']['back'], action: 'close', type: 'cart', row: 0, col: 0);
-            $this->add(text: $this->text_filling['keyboard']['ordering']['next'], action: 'ordering', variation: $local_variation, row: 0, col: 1);
+//            $this->add(text: $this->text_filling['keyboard']['ordering']['next'], action: 'ordering', variation: $local_variation, row: 0, col: 1);
 
         }
         return json_encode($this->keyboard);
