@@ -389,8 +389,8 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         switch ($this->callback_data_variation) {
 
             case 'set_delivery':
-                $this->add(text: 'ТРЦ Золотое Кольцо', action: 'close', type: 'cart', row: 0, col: 0);
-                $this->add(text: 'ТРЦ Донецк Сити', action: 'close', type: 'cart', row: 0, col: 1);
+                $this->add(text: 'ТРЦ Золотое Кольцо', action: 'order_delivery', type: 'golden_ring', row: 0, col: 0);
+                $this->add(text: 'ТРЦ Донецк Сити', action: 'order_delivery', type: 'donetsk_city', row: 0, col: 1);
                 $this->add(text: $this->text_filling['keyboard']['ordering']['cancel'], action: 'close', type: 'cart', row: 1, col: 0);
 
                 $local_variation = 'set_confirm';
