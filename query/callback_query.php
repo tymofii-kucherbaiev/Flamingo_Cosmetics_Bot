@@ -289,43 +289,6 @@ switch ($callback_action) {
         $core->editMessageText($function->profile_list(true), $data['message']['message_id'], $keyboard->edit_order());
         break;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # Блок оформления заказа
 
     case 'ordering':
@@ -357,7 +320,6 @@ switch ($callback_action) {
 
         $core->editMessageText($text_filling['message']['order'][$callback_variation], $message_id, $keyboard->ordering());
         break;
-
 
     case 'order_confirm':
         $res = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
