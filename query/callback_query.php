@@ -292,30 +292,46 @@ switch ($callback_action) {
     # Блок оформления заказа
 
     case 'ordering':
-        if ($mysqli_result_users['remember_order']) {
+//        if ($mysqli_result_users['remember_order']) {
+//
+//            $keyboard->mysqli_result = $mysqli_result_users;
+//
+//
+//            $caption = "————————————————————————
+//<b>Имя и Фамилия:</b> <i>{$mysqli_result_users['profile_first_name']} {$mysqli_result_users['profile_last_name']}</i>
+//<b>Телефон:</b> <i>$local_phone</i>
+//————————————————————————
+//<b>Адресс доставки:</b> <i>{$mysqli_result_users['address_pickup']}</i>
+//<b>Комментарий:</b> <i>{$res_us['is_comment']}</i>";
+//
+//        }
+//
+//
+//        if ($mysqli_result_users['phone_number'])
+//            $local_phone = '+' . $mysqli_result_users['phone_number'];
 
-            $keyboard->mysqli_result = $mysqli_result_users;
+        $core->deleteMessage($mysqli_result_users['service_id']);
+
+        if ($callback_type) {
+
+            switch ($callback_type){
+                case 'golden_ring':
+                    $local_text = 'ТРЦ "Золотое Кольцо"';
+                    break;
+
+                case 'donetsk_city':
+                    $local_text = 'ТРЦ "Донецк Сити"';
+                    break;
+            }
 
 
-            $caption = "————————————————————————
-<b>Имя и Фамилия:</b> <i>{$mysqli_result_users['profile_first_name']} {$mysqli_result_users['profile_last_name']}</i>
-<b>Телефон:</b> <i>$local_phone</i>
-————————————————————————
-<b>Адресс доставки:</b> <i>{$mysqli_result_users['address_pickup']}</i>
-<b>Комментарий:</b> <i>{$res_us['is_comment']}</i>";
-
+            $set_table = "address_pickup = \'{$local_text}\', ";
         }
 
 
-        if ($mysqli_result_users['phone_number'])
-            $local_phone = '+' . $mysqli_result_users['phone_number'];
-
-
         $keyboard->mysqli_result =
-            $mysqli->query("CALL PC_update('order_position = \'{$callback_variation}\'', '$user_id', 'users')")->fetch();
+            $mysqli->query("CALL PC_update('{$set_table}order_position = \'{$callback_variation}\'', '$user_id', 'users')")->fetch();
         $keyboard->callback_data_variation = $callback_variation;
-
-
 
 
         $core->editMessageText($text_filling['message']['order'][$callback_variation], $message_id, $keyboard->ordering());

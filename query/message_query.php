@@ -110,7 +110,6 @@ switch ($data['text']) {
                     break;
 
                 case 'set_phone':
-//                    if () {
                         $local_variation = 'set_delivery';
 
                         if (preg_match('/^[0-9]+$/i', $data['text']) == 0 OR iconv_strlen($data['text']) != 12) {
@@ -121,7 +120,15 @@ switch ($data['text']) {
 
                             $set_table = 'phone_number = ' . $data['text'];
                         }
-//                    }
+                    break;
+
+                case 'set_delivery':
+                    $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_delivery']), TRUE);
+                    $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
+                    break;
+
+                case 'set_comment':
+
                     break;
             }
             if ($complete) {
