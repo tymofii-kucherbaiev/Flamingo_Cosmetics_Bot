@@ -132,37 +132,37 @@ switch ($callback_action) {
         elseif ($callback_type == 'favorite') {
             $core->deleteMessage($data['message']['message_id']);
             $core->deleteMessage($mysqli_result_users['service_id']);
-            $local_user_result = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id")->fetchAll();
-
-            if ($local_user_result) {
-
-                $quality_row = count($local_user_result);
-                if ($quality_row > 5) {
-                    $keyboard->keyboard_type = 'inline_keyboard';
-                    $keyboard->callback_data_action = 'primary';
-                }
-
-                $local_text = "Ваш список желаемого:\n";
-                $local_num = 1;
-
-                foreach ($local_user_result as $value) {
-                    $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-
-                    $local_text .= "
-—————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>    <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
-<i>{$pr_local['title']}</i>
-—————————————————————————
-";
-                    $local_num++;
-                }
-                if ($quality_row > 5)
-                    $callback = json_decode($core->sendMessage($local_text, $keyboard->profile_favorite()), true);
-                else
-                    $callback = json_decode($core->sendMessage($local_text), true);
-            } else
-                $callback = json_decode($core->sendMessage($text_filling['message']['favorite']['null']), true);
-            $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+//            $local_user_result = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id")->fetchAll();
+//
+//            if ($local_user_result) {
+//
+//                $quality_row = count($local_user_result);
+//                if ($quality_row > 5) {
+//                    $keyboard->keyboard_type = 'inline_keyboard';
+//                    $keyboard->callback_data_action = 'primary';
+//                }
+//
+//                $local_text = "Ваш список желаемого:\n";
+//                $local_num = 1;
+//
+//                foreach ($local_user_result as $value) {
+//                    $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+//
+//                    $local_text .= "
+//—————————————————————————
+//<b>№$local_num   /{$pr_local['vendor_code']}</b>    <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
+//<i>{$pr_local['title']}</i>
+//—————————————————————————
+//";
+//                    $local_num++;
+//                }
+//                if ($quality_row > 5)
+//                    $callback = json_decode($core->sendMessage($local_text, $keyboard->profile_favorite()), true);
+//                else
+//                    $callback = json_decode($core->sendMessage($local_text), true);
+//            } else
+//                $callback = json_decode($core->sendMessage($text_filling['message']['favorite']['null']), true);
+//            $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
         } elseif ($callback_type == 'cart') {
             $core->deleteMessage($mysqli_result_users['service_id']);
             $keyboard->mysqli_result =
@@ -263,8 +263,8 @@ switch ($callback_action) {
 
             if ($local_sum < 1000) {
                 $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
-                $local_text .= "\n <b>📦 Доставка:</b> 100 {$text_filling['currency']} (Беслпатная от 1000 {$text_filling['currency']})";
-                $local_sum = $local_sum + 100;
+                $local_text .= "\n <b>📦 Доставка:</b> {$text_filling['delivery_price']} {$text_filling['currency']} (Беслпатная от {$text_filling['delivery_free']} {$text_filling['currency']})";
+                $local_sum = $local_sum + $text_filling['delivery_price'];
             } else
                 $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
 
@@ -293,7 +293,8 @@ switch ($callback_action) {
         break;
 
     case 'remove_product':
-        $mysqli->query("UPDATE users_cart_products SET modify_quality = modify_quality - 1 WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type");
+        if ($mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type")->fetch()['modify_quality'] != 1)
+            $mysqli->query("UPDATE users_cart_products SET modify_quality = modify_quality - 1 WHERE user_id LIKE $user_id AND vendor_code LIKE $callback_type");
 
         $keyboard->mysqli_result =
         $function->mysqli_result =
@@ -343,8 +344,6 @@ switch ($callback_action) {
             $keyboard->callback_data_type = $profile_order[$user_id]['remember_order'];
 
 
-
-
             $result_information_product =
                 $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
 
@@ -353,6 +352,7 @@ switch ($callback_action) {
 
             $local_text = "";
             $local_num = 1;
+            $local_sum = 0;
             foreach ($user_cart_products as $value) {
                 $res_prod = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
 
@@ -360,8 +360,15 @@ switch ($callback_action) {
 <i>{$res_prod['title']}</i>
 ————————————————————————
 ";
+                $local_sum = $local_sum + ($res_prod['price_old'] * $value['quality']);
                 $local_num++;
             }
+            if ($local_sum < 1000) {
+                $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
+                $local_text .= "\n <b>📦 Доставка:</b> {$text_filling['delivery_price']} {$text_filling['currency']}";
+                $local_sum = $local_sum + $text_filling['delivery_price'];
+            } else
+                $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
 
             $caption = "
 ————————————————————————
@@ -376,6 +383,9 @@ switch ($callback_action) {
 $local_text";
         }
 
+
+
+
         $keyboard->mysqli_result =
             $mysqli->query("CALL PC_update('{$set_table}order_position = \'{$callback_variation}\'', '$user_id', 'users')")->fetch();
         $keyboard->callback_data_variation = $callback_variation;
@@ -388,15 +398,16 @@ $local_text";
         $res = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
 
 
-        $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$mysqli_result_users['profile_first_name']}\', \'{$mysqli_result_users['profile_last_name']}\', 1000, \'Бесплатно\', \'{$mysqli_result_users['address_pickup']}\', {$mysqli_result_users['phone_number']}, \'Ты пидор\', \'Новый заказ\', 1')");
-
         $res_us = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
 
         $local_text = "";
         $local_num = 1;
+        $local_sum = 0;
         foreach ($res as $value) {
             $mysqli->query("CALL PC_insert('order_products', '*', '{$res_us['id']}, $user_id, {$value['vendor_code']}, {$value['quality']}')");
             $res_prod = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+
+            $local_sum = $local_sum + ($res_prod['price_old'] * $value['quality']);
 
             $local_text .= "<b>№$local_num   /{$value['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$res_prod['price_old']}</b> {$text_filling['currency']}
 <i>{$res_prod['title']}</i>
@@ -406,20 +417,28 @@ $local_text";
         }
 
 
+        if ($local_sum >= 1000)
+            $is_delivery = 'Бесплатно';
+        else
+            $is_delivery = $text_filling['delivery_price'] . ' ' . $text_filling['currency'];
+
+        $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $local_sum, \'$is_delivery\', \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'Новый заказ\', 1')");
+        $res_us = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
+
         foreach ($mysqli->query("SELECT * FROM users WHERE role LIKE 'administrator'")->fetchAll() as $value) {
 
 
             $caption = "<b>НОВЫЙ ЗАКАЗ!</b>
 Заказ №: {$res_us['id']} 
 ————————————————————————
-<b>Имя и Фамилия:</b> <code>{$mysqli_result_users['profile_first_name']} {$mysqli_result_users['profile_last_name']}</code>
-<b>Телефон:</b> <code>+{$mysqli_result_users['phone_number']}</code>
+<b>Имя и Фамилия:</b> <code>{$profile_order[$user_id]['first_name']} {$profile_order[$user_id]['last_name']}</code>
+<b>Телефон:</b> <code>+{$profile_order[$user_id]['phone_number']}</code>
 ————————————————————————
 <b>Сумма заказа:</b> <i>{$res_us['payment_amount']} {$text_filling['currency']}</i>
 <b>Доставка:</b> <i>{$res_us['is_delivery']}</i>
 ————————————————————————
-<b>Адресс доставки:</b> <i>{$res_us['address_pickup']}</i>
-<b>Комментарий:</b> <i>{$res_us['is_comment']}</i>
+<b>Адресс доставки:</b> <i>{$profile_order[$user_id]['address_pickup']}</i>
+<b>Комментарий:</b> <i>{$profile_order[$user_id]['comment']}</i>
 
 ##############################
 ##############################
@@ -428,8 +447,12 @@ $local_text";
 
             $core->chat_id = $value['user_id'];
             $core->sendMessage($caption, $keyboard->admin_order_control());
+            unset($caption);
         }
-//$mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
+
+        $core->sendMessage($text_filling['message']['order']['complete']);
+    $core->deleteMessage($mysqli_result_users['message_id']);
+$mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
         break;
 
     /* Добавление в избранное и корзину */

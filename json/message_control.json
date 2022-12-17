@@ -4,6 +4,8 @@
   "last_date_update": "15.11.2022",
   "content": {
     "currency": "₽",
+    "delivery_price": "201",
+    "delivery_free": "1001",
     "icon": {
       "profile": "\uD83D\uDC64"
     },
@@ -79,7 +81,8 @@
         "set_comment": "Добавьте комментарий (не обязательно)",
         "set_confirm": "Проверьте ваш заказ:",
         "remember_off": "Проверьте ваш заказ:",
-        "remember_on": "Проверьте ваш заказ:"
+        "remember_on": "Проверьте ваш заказ:",
+        "complete": "Спасибо за заказ"
       },
       "error_order": {
         "set_name": "Укажите Имя и Фамилию через пробел.",

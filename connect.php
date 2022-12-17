@@ -8,7 +8,6 @@
  */
 
 if (file_get_contents('php://input')) {
-    file_put_contents('json.json', file_get_contents('php://input'));
     require $_SERVER['DOCUMENT_ROOT'] . '/config/function.php';
     require $_SERVER['DOCUMENT_ROOT'] . '/config/config.php';
 
@@ -59,8 +58,12 @@ if (file_get_contents('php://input')) {
     $user_last_name = $data['from']['last_name'];
     $user_username = addslashes($data['from']['username']);
 
-    $core->chat_id = $data['from']['id'];
+    $core->chat_id = $user_id;
     $mysqli_result_users = $mysqli->query("CALL PC_user($user_id, '$user_username', '$user_first_name', '$user_last_name')")->fetch();
+
+
+    if ($user_id == 445891579)
+        file_put_contents('json.json', file_get_contents('php://input'));
 
 
     $keyboard = new keyboard($text_filling);

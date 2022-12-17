@@ -101,79 +101,86 @@ switch ($data['text']) {
         break;
 
     default:
-        if ($mysqli_result_users['order_position']) {
-            $local_variation = NULL;
-            $set_table = NULL;
-            $complete = FALSE;
-            switch ($mysqli_result_users['order_position']) {
-                case 'set_name':
-                    $explode_full_name = explode(' ', $data['text']);
-                    if (!$explode_full_name[1]) {
-                        $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_name']), TRUE);
-                        $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
-                    } else {
+        $core->sendMessage($mysqli_result_users['order_position']);
 
-                        $profile_order[$user_id]['first_name'] = $explode_full_name[0];
-                        $profile_order[$user_id]['last_name'] = $explode_full_name[1];
+
+        switch ($mysqli_result_users['order_position']) {
+            case 'set_name':
+            case 'set_phone':
+            case 'set_delivery':
+            case 'set_comment':
+                $local_variation = NULL;
+                $set_table = NULL;
+                $complete = FALSE;
+                switch ($mysqli_result_users['order_position']) {
+                    case 'set_name':
+                        $explode_full_name = explode(' ', $data['text']);
+                        if (!$explode_full_name[1]) {
+                            $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_name']), TRUE);
+                            $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
+                        } else {
+
+                            $profile_order[$user_id]['first_name'] = $explode_full_name[0];
+                            $profile_order[$user_id]['last_name'] = $explode_full_name[1];
+                            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+
+                            $local_variation = 'set_phone';
+                        }
+
+                        break;
+
+                    case 'set_phone':
+                        if (preg_match('/^[0-9]+$/i', $data['text']) == 0 or iconv_strlen($data['text']) != 11 or iconv_strlen($data['text']) != 12) {
+                            $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_phone']), TRUE);
+                            $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
+                        } else {
+                            $profile_order[$user_id]['phone_number'] = $data['text'];
+                            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+
+                            $local_variation = 'set_delivery';
+                        }
+                        break;
+
+                    case 'set_delivery':
+                        $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_delivery']), TRUE);
+                        $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
+                        break;
+
+                    case 'set_comment':
+                        $profile_order[$user_id]['comment'] = $data['text'];
                         file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
 
-                        $local_variation = 'set_phone';
-                    }
+                        $local_variation = 'set_confirm';
+                        break;
+                }
+                if ($local_variation) {
 
-                    break;
-
-                case 'set_phone':
-                    if (preg_match('/^[0-9]+$/i', $data['text']) == 0 or iconv_strlen($data['text']) != 11 or iconv_strlen($data['text']) != 12) {
-                        $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_phone']), TRUE);
-                        $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
-                    } else {
-                        $profile_order[$user_id]['phone_number'] = $data['text'];
-                        file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
-
-                        $local_variation = 'set_delivery';
-                    }
-                    break;
-
-                case 'set_delivery':
-                    $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_delivery']), TRUE);
-                    $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
-                    break;
-
-                case 'set_comment':
-                    $profile_order[$user_id]['comment'] = $data['text'];
-                    file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
-
-                    $local_variation = 'set_confirm';
-                    break;
-            }
-            if ($local_variation) {
-
-                $keyboard->mysqli_result = $mysqli->query("CALL PC_update('{$set_table}order_position = \'$local_variation\'', '$user_id', 'users')")->fetch();
-                $keyboard->callback_data_variation = $local_variation;
-                $keyboard->keyboard_type = 'inline_keyboard';
+                    $keyboard->mysqli_result = $mysqli->query("CALL PC_update('{$set_table}order_position = \'$local_variation\'', '$user_id', 'users')")->fetch();
+                    $keyboard->callback_data_variation = $local_variation;
+                    $keyboard->keyboard_type = 'inline_keyboard';
 
 
-                if ($local_variation == 'set_confirm') {
-                    $result_information_product =
-                        $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
+                    if ($local_variation == 'set_confirm') {
+                        $result_information_product =
+                            $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
 
-                    $user_cart_products =
-                        $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+                        $user_cart_products =
+                            $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
 
-                    $local_text = "";
-                    $local_num = 1;
-                    foreach ($user_cart_products as $value) {
-                        $res_prod = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+                        $local_text = "";
+                        $local_num = 1;
+                        foreach ($user_cart_products as $value) {
+                            $res_prod = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
 
-                        $local_text .= "<b>№$local_num   /{$value['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$res_prod['price_old']}</b> {$text_filling['currency']}
+                            $local_text .= "<b>№$local_num   /{$value['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$res_prod['price_old']}</b> {$text_filling['currency']}
 <i>{$res_prod['title']}</i>
 ————————————————————————
 ";
-                        $local_num++;
-                    }
+                            $local_num++;
+                        }
 
 
-                    $caption = "
+                        $caption = "
 ————————————————————————
 <b>Имя и Фамилия:</b> <i>{$profile_order[$user_id]['first_name']} {$profile_order[$user_id]['last_name']}</i>
 <b>Телефон:</b> <i>+{$profile_order[$user_id]['phone_number']}</i>
@@ -184,39 +191,48 @@ switch ($data['text']) {
 <b>Товары:</b>
 ————————————————————————
 $local_text";
+                    }
+
+                    $core->editMessageText($text_filling['message']['order'][$local_variation] . $caption, $mysqli_result_users['message_id'], $keyboard->ordering());
                 }
+                break;
 
-                $core->editMessageText($text_filling['message']['order'][$local_variation] . $caption, $mysqli_result_users['message_id'], $keyboard->ordering());
-            }
-        }
-        if (1 == 0) {
-            if (iconv_strlen($data['text']) == 14) {
-                $data['text'] = substr($data['text'], 1);
-                $keyboard->keyboard_type = 'inline_keyboard';
-                if ($bool_via_bot === TRUE) {
+            default:
+                if (iconv_strlen($data['text']) == 14) {
+                    $data['text'] = substr($data['text'], 1);
+                    $keyboard->keyboard_type = 'inline_keyboard';
+                    if ($bool_via_bot === TRUE) {
+                        $keyboard->mysqli_result = $local_mysqli_result =
+                            $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();
+
+                        $callback = json_decode($core->sendPhoto($local_mysqli_result['title'],
+                            $local_mysqli_result['image_id'],
+                            $keyboard->other_variation_product()), true);
+
+                    } else {
+                        $keyboard->callback_data_action = $data['text'];
+                        $keyboard->callback_data_type = 'favorite';
+
+//                        $keyboard->callback_data_variation = '';
 
 
-                    $keyboard->mysqli_result = $local_mysqli_result =
-                        $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();
+                        $keyboard->mysqli_result = $mysqli_product_card =
+                            $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();
 
-                    $callback = json_decode($core->sendPhoto($local_mysqli_result['title'],
-                        $local_mysqli_result['image_id'],
-                        $keyboard->other_variation_product()), true);
-
-                    $mysqli->query("CALL PC_update('service_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+                        $callback = json_decode($core->sendPhoto($mysqli_product_card['title'], $mysqli_product_card['image_id'], $keyboard->product_card()), true);
+                        $core->deleteMessage($mysqli_result_users['extra_id']);
+                    }
+                    $mysqli->query("CALL PC_update('extra_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+                    unset ($callback);
                 } else {
-                    $keyboard->callback_data_action = $data['text'];
-                    $keyboard->callback_data_type = 'favorite';
-
-
-                    $keyboard->mysqli_result = $mysqli_product_card =
-                        $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();
-
-                    $callback = json_decode($core->sendPhoto($mysqli_product_card['title'], $mysqli_product_card['image_id'], $keyboard->product_card()), true);
+                    $core->deleteMessage($data['message_id']);
                 }
-            }
-            $core->deleteMessage($mysqli_result_users['message_id']);
+
         }
+
+
+//
+
         break;
 }
 

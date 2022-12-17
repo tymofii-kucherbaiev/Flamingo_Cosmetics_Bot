@@ -538,7 +538,7 @@ class other
                 $quality = $value['quality'];
 
             $pr_local = $this->mysqli_link->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-            $local_sum = $local_sum + ($pr_local['price_old'] * $value['quality']);
+            $local_sum = $local_sum + ($pr_local['price_old'] * $quality);
 
             $local_text .= "
 —————————————————————————
@@ -551,7 +551,7 @@ class other
 
         if ($local_sum < 1000) {
             $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$this->text_filling['currency']}";
-            $local_text .= "\n <b>📦 Доставка:</b> 100 {$this->text_filling['currency']} (Беслпатная от 1000 {$this->text_filling['currency']})";
+            $local_text .= "\n <b>📦 Доставка:</b> {$this->text_filling['delivery_price']} {$this->text_filling['currency']} (Беслпатная от {$this->text_filling['delivery_free']} {$this->text_filling['currency']})";
             $local_sum = $local_sum + 100;
         } else
             $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
