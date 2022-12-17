@@ -40,17 +40,7 @@ class api
                 'text' => $text,
                 'reply_markup' => $reply_markup
             );
-        return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
-    }
-
-    /* Обработчик ошибок */
-    private function error($input)
-    {
-        $error = json_decode($input, true);
-        if ($error['ok'] === FALSE)
-            file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/errors/' .
-                '[' . date("d-m") . '] [' . date("H-i-s") . '] ' . $error['description'] . '.json', $input);
-        return $input;
+        return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
     private function curl($method, $request_params): bool|string|array
@@ -72,7 +62,7 @@ class api
             'protect_content' => $this->protect_content,
             'reply_markup' => $reply_markup);
 
-        return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
+        return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
     public function answerInlineQuery($inline_query_id, $result): bool|array|string
@@ -85,7 +75,7 @@ class api
             'cache_time' => 1,
             'results' => json_encode($result)
         );
-        return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
+        return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
     public function answerCallbackQuery($text = NULL, $callback_query_id = NULL, $show_alert = FALSE): bool|array|string
@@ -95,7 +85,7 @@ class api
             'show_alert' => $show_alert,
             'callback_query_id' => $callback_query_id
         );
-        return $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
+        return $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
     public function editMessageMedia($message_id, $caption, $media, $reply_markup = NULL): void
@@ -111,7 +101,7 @@ class api
             'reply_markup' => $reply_markup
         );
 
-        $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
+        $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
     public function editMessageText($text, $message_id, $reply_markup = NULL): void
@@ -124,7 +114,7 @@ class api
             'parse_mode' => $this->parse_mode,
             'reply_markup' => $reply_markup
         );
-        $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
+        $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
     public function deleteMessage($message_id, $message_type = 'callback'): void
@@ -133,7 +123,7 @@ class api
             'chat_id' => $this->chat_id,
             'message_id' => $message_id
         );
-        $this->error($this->curl(method: __FUNCTION__, request_params: $request_params));
+        $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
 }
@@ -398,7 +388,7 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
             case 'remember_on';
 
             if ($this->callback_data_type === TRUE)
-                $this->add(text: $this->text_filling['keyboard']['ordering']['remember_on'], action: 'ordering', variation: 'remember_on', row: 0, col: 0);
+                $this->add(text: $this->text_filling['keyboard']['ordering']['edit'], action: 'ordering', variation: 'set_edit', row: 0, col: 0);
             else
                 $this->add(text: $this->text_filling['keyboard']['ordering']['remember_off'], action: 'ordering', variation: 'remember_off', row: 0, col: 0);
 
@@ -552,7 +542,7 @@ class other
         if ($local_sum < 1000) {
             $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$this->text_filling['currency']}";
             $local_text .= "\n <b>📦 Доставка:</b> {$this->text_filling['delivery_price']} {$this->text_filling['currency']} (Беслпатная от {$this->text_filling['delivery_free']} {$this->text_filling['currency']})";
-            $local_sum = $local_sum + 100;
+            $local_sum = $local_sum + $this->text_filling['delivery_price'];
         } else
             $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
 

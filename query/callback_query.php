@@ -314,6 +314,20 @@ switch ($callback_action) {
             $callback_variation = 'set_comment';
         }
 
+        if ($callback_variation == 'set_edit') {
+            $profile_order[$user_id]['first_name'] = NULL;
+            $profile_order[$user_id]['last_name'] = NULL;
+            $profile_order[$user_id]['phone_number'] = NULL;
+            $profile_order[$user_id]['address_delivery'] = NULL;
+            $profile_order[$user_id]['address_pickup'] = NULL;
+            $profile_order[$user_id]['comment'] = 'Отсутствует';
+            $profile_order[$user_id]['remember_order'] = FALSE;
+
+            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+            $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
+        }
+
+
         if ($callback_type) {
             switch ($callback_type) {
                 case 'golden_ring':
@@ -370,6 +384,8 @@ switch ($callback_action) {
             } else
                 $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
 
+            $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
+
             $caption = "
 ————————————————————————
 <b>Имя и Фамилия:</b> <i>{$profile_order[$user_id]['first_name']} {$profile_order[$user_id]['last_name']}</i>
@@ -382,8 +398,6 @@ switch ($callback_action) {
 ————————————————————————
 $local_text";
         }
-
-
 
 
         $keyboard->mysqli_result =
@@ -420,13 +434,22 @@ $local_text";
         if ($local_sum >= 1000)
             $is_delivery = 'Бесплатно';
         else
-            $is_delivery = $text_filling['delivery_price'] . ' ' . $text_filling['currency'];
+            $is_delivery = $text_filling['delivery_price'];
 
         $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $local_sum, \'$is_delivery\', \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'Новый заказ\', 1')");
         $res_us = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
 
+        unset ($is_delivery);
+        $core->sendMessage($text_filling['message']['order']['complete']);
+
         foreach ($mysqli->query("SELECT * FROM users WHERE role LIKE 'administrator'")->fetchAll() as $value) {
 
+
+
+            if ($res_us['is_delivery'] == 'Бесплатно')
+                $is_delivery = 'Бесплатно';
+            else
+                $is_delivery = $res_us['payment_amount'] + $res_us['is_delivery'];
 
             $caption = "<b>НОВЫЙ ЗАКАЗ!</b>
 Заказ №: {$res_us['id']} 
@@ -436,6 +459,7 @@ $local_text";
 ————————————————————————
 <b>Сумма заказа:</b> <i>{$res_us['payment_amount']} {$text_filling['currency']}</i>
 <b>Доставка:</b> <i>{$res_us['is_delivery']}</i>
+<b>Общая сумма:</b> <i>$is_delivery {$text_filling['currency']}</i>
 ————————————————————————
 <b>Адресс доставки:</b> <i>{$profile_order[$user_id]['address_pickup']}</i>
 <b>Комментарий:</b> <i>{$profile_order[$user_id]['comment']}</i>
@@ -450,9 +474,8 @@ $local_text";
             unset($caption);
         }
 
-        $core->sendMessage($text_filling['message']['order']['complete']);
-    $core->deleteMessage($mysqli_result_users['message_id']);
-$mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
+        $core->deleteMessage($mysqli_result_users['message_id']);
+        $mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
         break;
 
     /* Добавление в избранное и корзину */

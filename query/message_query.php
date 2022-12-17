@@ -101,19 +101,19 @@ switch ($data['text']) {
         break;
 
     default:
-        $core->sendMessage($mysqli_result_users['order_position']);
-
-
         switch ($mysqli_result_users['order_position']) {
             case 'set_name':
             case 'set_phone':
             case 'set_delivery':
             case 'set_comment':
+            case 'set_edit':
                 $local_variation = NULL;
-                $set_table = NULL;
                 $complete = FALSE;
+
+
                 switch ($mysqli_result_users['order_position']) {
                     case 'set_name':
+                    case 'set_edit':
                         $explode_full_name = explode(' ', $data['text']);
                         if (!$explode_full_name[1]) {
                             $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_name']), TRUE);
@@ -130,7 +130,7 @@ switch ($data['text']) {
                         break;
 
                     case 'set_phone':
-                        if (preg_match('/^[0-9]+$/i', $data['text']) == 0 or iconv_strlen($data['text']) != 11 or iconv_strlen($data['text']) != 12) {
+                        if (preg_match('/^[0-9]+$/i', $data['text']) == 0 or iconv_strlen($data['text']) != 11 and iconv_strlen($data['text']) != 12) {
                             $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_phone']), TRUE);
                             $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
                         } else {
@@ -152,14 +152,16 @@ switch ($data['text']) {
 
                         $local_variation = 'set_confirm';
                         break;
+
                 }
                 if ($local_variation) {
 
-                    $keyboard->mysqli_result = $mysqli->query("CALL PC_update('{$set_table}order_position = \'$local_variation\'', '$user_id', 'users')")->fetch();
+                    $keyboard->mysqli_result = $mysqli->query("CALL PC_update('order_position = \'$local_variation\'', '$user_id', 'users')")->fetch();
                     $keyboard->callback_data_variation = $local_variation;
                     $keyboard->keyboard_type = 'inline_keyboard';
+                    $keyboard->callback_data_type = $profile_order[$user_id]['remember_order'];
 
-
+                    $local_sum = 0;
                     if ($local_variation == 'set_confirm') {
                         $result_information_product =
                             $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
@@ -176,9 +178,17 @@ switch ($data['text']) {
 <i>{$res_prod['title']}</i>
 ————————————————————————
 ";
+                            $local_sum = $local_sum + ($res_prod['price_old'] * $value['quality']);
                             $local_num++;
                         }
+                        if ($local_sum < 1000) {
+                            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
+                            $local_text .= "\n <b>📦 Доставка:</b> {$text_filling['delivery_price']} {$text_filling['currency']}";
+                            $local_sum = $local_sum + $text_filling['delivery_price'];
+                        } else
+                            $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
 
+                        $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$text_filling['currency']}";
 
                         $caption = "
 ————————————————————————
@@ -244,3 +254,4 @@ if ($bool_via_bot === FALSE)
     $core->deleteMessage($mysqli_result_users['callback_id']);
 
 $core->deleteMessage($mysqli_result_users['service_id']);
+$core->deleteMessage($mysqli_result_users['extra_id']);

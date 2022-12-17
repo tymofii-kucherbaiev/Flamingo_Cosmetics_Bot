@@ -4,8 +4,8 @@
   "last_date_update": "15.11.2022",
   "content": {
     "currency": "₽",
-    "delivery_price": "201",
-    "delivery_free": "1001",
+    "delivery_price": "200",
+    "delivery_free": "1000",
     "icon": {
       "profile": "\uD83D\uDC64"
     },
@@ -76,6 +76,7 @@
     "message": {
       "order": {
         "set_name": "Введите ваше Имя и Фамилию:",
+        "set_edit": "Введите ваше Имя и Фамилию:",
         "set_phone": "Введите ваш номер телефона:",
         "set_delivery": "Выберите адресс доставки",
         "set_comment": "Добавьте комментарий (не обязательно)",
