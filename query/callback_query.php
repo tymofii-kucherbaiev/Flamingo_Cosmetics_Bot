@@ -13,6 +13,7 @@
  * @var $data array
  * @var $inline_keyboard array
  * @var $message_id string
+ * @var $profile_order array
  */
 
 if ($callback_action != 'product_favorite' and $callback_action != 'product_cart' and $callback_action != 'product_count')
@@ -292,29 +293,9 @@ switch ($callback_action) {
     # Блок оформления заказа
 
     case 'ordering':
-//        if ($mysqli_result_users['remember_order']) {
-//
-//            $keyboard->mysqli_result = $mysqli_result_users;
-//
-//
-//            $caption = "————————————————————————
-//<b>Имя и Фамилия:</b> <i>{$mysqli_result_users['profile_first_name']} {$mysqli_result_users['profile_last_name']}</i>
-//<b>Телефон:</b> <i>$local_phone</i>
-//————————————————————————
-//<b>Адресс доставки:</b> <i>{$mysqli_result_users['address_pickup']}</i>
-//<b>Комментарий:</b> <i>{$res_us['is_comment']}</i>";
-//
-//        }
-//
-//
-//        if ($mysqli_result_users['phone_number'])
-//            $local_phone = '+' . $mysqli_result_users['phone_number'];
-
         $core->deleteMessage($mysqli_result_users['service_id']);
-
         if ($callback_type) {
-
-            switch ($callback_type){
+            switch ($callback_type) {
                 case 'golden_ring':
                     $local_text = 'ТРЦ "Золотое Кольцо"';
                     break;
@@ -324,17 +305,53 @@ switch ($callback_action) {
                     break;
             }
 
-
-            $set_table = "address_pickup = \'{$local_text}\', ";
+            $profile_order[$user_id]['address_pickup'] = $local_text;
+            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
         }
 
+        if ($callback_variation == 'set_confirm') {
+            $profile_order[$user_id]['comment'] = 'Отсутсвует';
+            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+            $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
+
+            $result_information_product =
+                $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
+
+            $user_cart_products =
+                $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+
+            $local_text = "";
+            $local_num = 1;
+            foreach ($user_cart_products as $value) {
+                $res_prod = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+
+                $local_text .= "<b>№$local_num   /{$value['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$res_prod['price_old']}</b> {$text_filling['currency']}
+<i>{$res_prod['title']}</i>
+————————————————————————
+";
+                $local_num++;
+            }
+
+
+            $caption = "
+————————————————————————
+<b>Имя и Фамилия:</b> <i>{$profile_order[$user_id]['first_name']} {$profile_order[$user_id]['last_name']}</i>
+<b>Телефон:</b> <i>+{$profile_order[$user_id]['phone_number']}</i>
+————————————————————————
+<b>Адресс доставки:</b> <i>{$profile_order[$user_id]['address_pickup']}</i>
+<b>Комментарий:</b> <i>{$profile_order[$user_id]['comment']}</i>
+————————————————————————
+<b>Товары:</b>
+————————————————————————
+$local_text";
+        }
 
         $keyboard->mysqli_result =
             $mysqli->query("CALL PC_update('{$set_table}order_position = \'{$callback_variation}\'', '$user_id', 'users')")->fetch();
         $keyboard->callback_data_variation = $callback_variation;
 
 
-        $core->editMessageText($text_filling['message']['order'][$callback_variation], $message_id, $keyboard->ordering());
+        $core->editMessageText($text_filling['message']['order'][$callback_variation] . $caption, $message_id, $keyboard->ordering());
         break;
 
     case 'order_confirm':
@@ -377,8 +394,7 @@ switch ($callback_action) {
 ##############################
 ##############################
 ————————————————————————
-$local_text
-            ";
+$local_text";
 
             $core->chat_id = $value['user_id'];
             $core->sendMessage($caption, $keyboard->admin_order_control());

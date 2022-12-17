@@ -12,7 +12,8 @@ if (file_get_contents('php://input')) {
     require $_SERVER['DOCUMENT_ROOT'] . '/config/function.php';
     require $_SERVER['DOCUMENT_ROOT'] . '/config/config.php';
 
-    $text_filling = json_decode(file_get_contents('./config/message_control.json'), true)['content'];
+
+    $text_filling = json_decode(file_get_contents('./json/message_control.json'), true)['content'];
     $input = json_decode(file_get_contents('php://input'), true);
 
     $mysqli_option = array(
@@ -29,9 +30,6 @@ if (file_get_contents('php://input')) {
 
     $core = new api($local_access_token);
     $core->parse_mode = 'html';
-
-
-
 
 
     $bool_inline_query = array_key_exists('inline_query', $input);
@@ -62,6 +60,8 @@ if (file_get_contents('php://input')) {
 
     $core->chat_id = $data['from']['id'];
     $mysqli_result_users = $mysqli->query("CALL PC_user($user_id, '$user_username', '$user_first_name', '$user_last_name')")->fetch();
+
+    $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
 
     $keyboard = new keyboard($text_filling);
     $keyboard->mysqli_result = $mysqli_result_users;
