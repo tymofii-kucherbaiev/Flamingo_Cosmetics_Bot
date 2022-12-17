@@ -173,6 +173,19 @@ switch ($callback_action) {
 
             $keyboard->keyboard_type = 'inline_keyboard';
             $core->editMessageText($function->profile_list(), $message_id, $keyboard->profile_list());
+
+
+            if ($profile_order[$user_id]['remember_order'] === true)
+                $profile_order[$user_id]['comment'] = 'Отсутствует';
+            else {
+                $profile_order[$user_id]['first_name'] = NULL;
+                $profile_order[$user_id]['last_name'] = NULL;
+                $profile_order[$user_id]['phone_number'] = NULL;
+                $profile_order[$user_id]['address_delivery'] = NULL;
+                $profile_order[$user_id]['address_pickup'] = NULL;
+                $profile_order[$user_id]['comment'] = 'Отсутствует';
+            }
+            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
         } else
             $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
@@ -294,6 +307,12 @@ switch ($callback_action) {
 
     case 'ordering':
         $core->deleteMessage($mysqli_result_users['service_id']);
+
+
+        if ($profile_order[$user_id]['remember_order'] === true and $callback_variation == 'set_name') {
+            $callback_variation = 'set_comment';
+        }
+
         if ($callback_type) {
             switch ($callback_type) {
                 case 'golden_ring':
@@ -309,10 +328,22 @@ switch ($callback_action) {
             file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
         }
 
-        if ($callback_variation == 'set_confirm') {
-            $profile_order[$user_id]['comment'] = 'Отсутсвует';
+        if ($callback_variation == 'set_confirm' or $callback_variation == 'remember_off' or $callback_variation == 'remember_on') {
+
+
+            if ($callback_variation == 'remember_on')
+                $profile_order[$user_id]['remember_order'] = false;
+            elseif ($callback_variation == 'remember_off')
+                $profile_order[$user_id]['remember_order'] = true;
+
             file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+
+
             $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
+            $keyboard->callback_data_type = $profile_order[$user_id]['remember_order'];
+
+
+
 
             $result_information_product =
                 $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
@@ -331,7 +362,6 @@ switch ($callback_action) {
 ";
                 $local_num++;
             }
-
 
             $caption = "
 ————————————————————————

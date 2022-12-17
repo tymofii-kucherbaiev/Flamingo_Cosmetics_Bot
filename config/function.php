@@ -155,7 +155,7 @@ class keyboard
 
     /* callback_data */
     public string|null $callback_data_action;
-    public string|null $callback_data_type;
+    public string|bool|null $callback_data_type;
     private array|null $text_filling;
 
     /* Private */
@@ -395,7 +395,20 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
                 break;
 
             case 'set_confirm':
-                $this->add(text: $this->text_filling['keyboard']['ordering']['remember_off'], action: 'order_remember', row: 0, col: 0);
+            case 'remember_on';
+
+            if ($this->callback_data_type === TRUE)
+                $this->add(text: $this->text_filling['keyboard']['ordering']['remember_on'], action: 'ordering', variation: 'remember_on', row: 0, col: 0);
+            else
+                $this->add(text: $this->text_filling['keyboard']['ordering']['remember_off'], action: 'ordering', variation: 'remember_off', row: 0, col: 0);
+
+
+            $this->add(text: $this->text_filling['keyboard']['ordering']['confirm'], action: 'order_confirm', row: 0, col: 1);
+                $this->add(text: $this->text_filling['keyboard']['ordering']['cancel'], action: 'close', type: 'cart', row: 1, col: 0);
+                break;
+
+            case 'remember_off':
+                $this->add(text: $this->text_filling['keyboard']['ordering']['remember_on'], action: 'ordering', variation: 'remember_on', row: 0, col: 0);
                 $this->add(text: $this->text_filling['keyboard']['ordering']['confirm'], action: 'order_confirm', row: 0, col: 1);
                 $this->add(text: $this->text_filling['keyboard']['ordering']['cancel'], action: 'close', type: 'cart', row: 1, col: 0);
                 break;

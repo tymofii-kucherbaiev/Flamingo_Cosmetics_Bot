@@ -22,12 +22,12 @@ switch ($data['text']) {
         $core->deleteMessage($mysqli_result_users['message_id']);
 
         $profile_order[$user_id] = [
-            'first_name' => '',
-            'last_name' => '',
-            'phone_number' => '',
-            'address_delivery' => '',
-            'address_pickup' => '',
-            'remember_order' => '',
+            'first_name' => NULL,
+            'last_name' => NULL,
+            'phone_number' => NULL,
+            'address_delivery' => NULL,
+            'address_pickup' => NULL,
+            'remember_order' => false,
             'comment' => 'Отсутствует'
         ];
         file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
@@ -123,7 +123,7 @@ switch ($data['text']) {
                     break;
 
                 case 'set_phone':
-                    if (preg_match('/^[0-9]+$/i', $data['text']) == 0 or iconv_strlen($data['text']) != 12) {
+                    if (preg_match('/^[0-9]+$/i', $data['text']) == 0 or iconv_strlen($data['text']) != 11 or iconv_strlen($data['text']) != 12) {
                         $local_callback = json_decode($core->sendMessage($text_filling['message']['error_order']['set_phone']), TRUE);
                         $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
                     } else {

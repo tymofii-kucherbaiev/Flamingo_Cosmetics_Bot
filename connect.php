@@ -15,6 +15,7 @@ if (file_get_contents('php://input')) {
 
     $text_filling = json_decode(file_get_contents('./json/message_control.json'), true)['content'];
     $input = json_decode(file_get_contents('php://input'), true);
+    $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
 
     $mysqli_option = array(
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -61,7 +62,6 @@ if (file_get_contents('php://input')) {
     $core->chat_id = $data['from']['id'];
     $mysqli_result_users = $mysqli->query("CALL PC_user($user_id, '$user_username', '$user_first_name', '$user_last_name')")->fetch();
 
-    $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
 
     $keyboard = new keyboard($text_filling);
     $keyboard->mysqli_result = $mysqli_result_users;
