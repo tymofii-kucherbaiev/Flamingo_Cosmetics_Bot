@@ -21,16 +21,19 @@ switch ($data['text']) {
         $mysqli->query("CALL PC_update('main_menu_id = \'{$callback_local['result']['message_id']}\', order_position = NULL', '$user_id', 'users')");
         $core->deleteMessage($mysqli_result_users['message_id']);
 
-        $profile_order[$user_id] = [
-            'first_name' => NULL,
-            'last_name' => NULL,
-            'phone_number' => NULL,
-            'address_delivery' => NULL,
-            'address_pickup' => NULL,
-            'remember_order' => false,
-            'comment' => 'Отсутствует'
-        ];
-        file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+
+        if ($profile_order[$user_id]['remember_order'] === false) {
+            $profile_order[$user_id] = [
+                'first_name' => NULL,
+                'last_name' => NULL,
+                'phone_number' => NULL,
+                'address_delivery' => NULL,
+                'address_pickup' => NULL,
+                'remember_order' => false,
+                'comment' => 'Отсутствует'
+            ];
+            file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+        }
         break;
 
     case $text_filling['command']['search']:
@@ -101,7 +104,12 @@ switch ($data['text']) {
         break;
 
     case $text_filling['keyboard']['main']['admin']:
+        if ($mysqli_result_users['role'] == 'administrator') {
+            $keyboard->keyboard_type = 'inline_keyboard';
 
+            $callback = json_decode($core->sendMessage($text_filling['message']['admin_main_menu'], $keyboard->admin_main_menu()), true);
+            $mysqli->query("CALL PC_update('admin_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+        }
         break;
 
     default:
@@ -126,7 +134,7 @@ switch ($data['text']) {
 
                             $profile_order[$user_id]['first_name'] = $explode_full_name[0];
                             $profile_order[$user_id]['last_name'] = $explode_full_name[1];
-                            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+                            file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
 
                             $local_variation = 'set_phone';
                         }
@@ -139,7 +147,7 @@ switch ($data['text']) {
                             $mysqli->query("CALL PC_update('service_id = \'{$local_callback['result']['message_id']}\'', '$user_id', 'users')");
                         } else {
                             $profile_order[$user_id]['phone_number'] = $data['text'];
-                            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+                            file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
 
                             $local_variation = 'set_delivery';
                         }
@@ -152,7 +160,7 @@ switch ($data['text']) {
 
                     case 'set_comment':
                         $profile_order[$user_id]['comment'] = $data['text'];
-                        file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+                        file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
 
                         $local_variation = 'set_confirm';
                         break;
@@ -185,7 +193,7 @@ switch ($data['text']) {
                             $local_sum = $local_sum + ($res_prod['price_old'] * $value['quality']);
                             $local_num++;
                         }
-                        if ($local_sum < 1000) {
+                        if ($local_sum <= $text_filling['delivery_price']) {
                             $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
                             $local_text .= "\n <b>📦 Доставка:</b> {$text_filling['delivery_price']} {$text_filling['currency']}";
                             $local_sum = $local_sum + $text_filling['delivery_price'];
@@ -226,9 +234,6 @@ $local_text";
                     } else {
                         $keyboard->callback_data_action = $data['text'];
                         $keyboard->callback_data_type = 'favorite';
-
-//                        $keyboard->callback_data_variation = '';
-
 
                         $keyboard->mysqli_result = $mysqli_product_card =
                             $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();

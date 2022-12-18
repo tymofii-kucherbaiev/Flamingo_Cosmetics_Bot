@@ -240,9 +240,12 @@ class keyboard
 
         $this->add(text: $this->text_filling['keyboard']['main']['profile'], row: 2, col: 0);
 
-        if ($this->mysqli_result['role'] == 'administrator')
-            $this->add(text: $this->text_filling['keyboard']['main']['admin'], row: 2, col: 1);
+        if ($this->mysqli_result['role'] == 'administrator') {
+//            $count = $this->mysqli_link->query("SELECT * FROM order_general WHERE is_status LIKE 'Новый заказ'")->rowCount();
 
+
+            $this->add(text: $this->text_filling['keyboard']['main']['admin'], row: 2, col: 1);
+        }
         return json_encode($this->keyboard);
     }
 
@@ -394,13 +397,13 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
             case 'set_confirm':
             case 'remember_on';
 
-            if ($this->callback_data_type === TRUE)
-                $this->add(text: $this->text_filling['keyboard']['ordering']['edit'], action: 'ordering', variation: 'set_edit', row: 0, col: 0);
-            else
-                $this->add(text: $this->text_filling['keyboard']['ordering']['remember_off'], action: 'ordering', variation: 'remember_off', row: 0, col: 0);
+                if ($this->callback_data_type === TRUE)
+                    $this->add(text: $this->text_filling['keyboard']['ordering']['edit'], action: 'ordering', variation: 'set_edit', row: 0, col: 0);
+                else
+                    $this->add(text: $this->text_filling['keyboard']['ordering']['remember_off'], action: 'ordering', variation: 'remember_off', row: 0, col: 0);
 
 
-            $this->add(text: $this->text_filling['keyboard']['ordering']['confirm'], action: 'order_confirm', row: 0, col: 1);
+                $this->add(text: $this->text_filling['keyboard']['ordering']['confirm'], action: 'order_confirm', row: 0, col: 1);
                 $this->add(text: $this->text_filling['keyboard']['ordering']['cancel'], action: 'close', type: 'cart', row: 1, col: 0);
                 break;
 
@@ -507,10 +510,20 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
+    /* Admin zone */
+
+    public function admin_main_menu(): bool|string
+    {
+        $this->add(text: $this->text_filling['keyboard']['admin']['edit_profile'], action: 'admin', type: 'edit_profile', row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_list'], action: 'admin', type: 'order_list', row: 0, col: 1);
+
+
+        return json_encode($this->keyboard);
+    }
 
     public function admin_order_control(): bool|string
     {
-        $this->add(text: '✅ Взять в работу', action: 'take_to_work', row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_confirm'], action: 'take_to_work', row: 0, col: 0);
 
         return json_encode($this->keyboard);
     }
@@ -546,7 +559,7 @@ class other
             $local_num++;
         }
 
-        if ($local_sum < 1000) {
+        if ($local_sum < $this->text_filling['delivery_free']) {
             $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$this->text_filling['currency']}";
             $local_text .= "\n <b>📦 Доставка:</b> {$this->text_filling['delivery_price']} {$this->text_filling['currency']} (Беслпатная от {$this->text_filling['delivery_free']} {$this->text_filling['currency']})";
             $local_sum = $local_sum + $this->text_filling['delivery_price'];

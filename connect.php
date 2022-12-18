@@ -14,7 +14,8 @@ if (file_get_contents('php://input')) {
 
     $text_filling = json_decode(file_get_contents('./json/message_control.json'), true)['content'];
     $input = json_decode(file_get_contents('php://input'), true);
-    $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
+    $profile_order = json_decode(file_get_contents('./json/order_general.json'), true);
+    $status_order = json_decode(file_get_contents('./json/order_status.json'), true);
 
     $mysqli_option = array(
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

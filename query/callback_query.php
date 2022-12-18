@@ -1,5 +1,6 @@
-<?php /** @noinspection ALL */
+<?php
 /**
+ * @noinspection ALL
  * @var $mysqli mysqli_result
  * @var $mysqli_result_users mysqli_result
  * @var $core api
@@ -185,7 +186,7 @@ switch ($callback_action) {
                 $profile_order[$user_id]['address_pickup'] = NULL;
                 $profile_order[$user_id]['comment'] = 'Отсутствует';
             }
-            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+            file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
         } else
             $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
@@ -289,7 +290,7 @@ switch ($callback_action) {
         $function->mysqli_result =
             $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id AND is_status LIKE TRUE")->fetchAll();
 
-        $core->editMessageText($function->profile_list(true), $data['message']['message_id'], $keyboard->edit_order());
+        $core->editMessageText($function->profile_list(true), $message_id, $keyboard->edit_order());
         break;
 
     case 'remove_product':
@@ -323,8 +324,8 @@ switch ($callback_action) {
             $profile_order[$user_id]['comment'] = 'Отсутствует';
             $profile_order[$user_id]['remember_order'] = FALSE;
 
-            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
-            $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
+            file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+            $profile_order = json_decode(file_get_contents('./json/order_general.json'), true);
         }
 
 
@@ -340,7 +341,7 @@ switch ($callback_action) {
             }
 
             $profile_order[$user_id]['address_pickup'] = $local_text;
-            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+            file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
         }
 
         if ($callback_variation == 'set_confirm' or $callback_variation == 'remember_off' or $callback_variation == 'remember_on') {
@@ -351,10 +352,10 @@ switch ($callback_action) {
             elseif ($callback_variation == 'remember_off')
                 $profile_order[$user_id]['remember_order'] = true;
 
-            file_put_contents('./json/order_comment.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
+            file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
 
 
-            $profile_order = json_decode(file_get_contents('./json/order_comment.json'), true);
+            $profile_order = json_decode(file_get_contents('./json/order_general.json'), true);
             $keyboard->callback_data_type = $profile_order[$user_id]['remember_order'];
 
 
@@ -431,7 +432,7 @@ $local_text";
         }
 
 
-        if ($local_sum >= 1000)
+        if ($local_sum >= $text_filling['delivery_free'])
             $is_delivery = 'Бесплатно';
         else
             $is_delivery = $text_filling['delivery_price'];
@@ -472,11 +473,11 @@ $local_text";
 
             $core->chat_id = $value['user_id'];
             $core->sendMessage($caption, $keyboard->admin_order_control());
-            unset($caption);
         }
 
         $core->deleteMessage($mysqli_result_users['message_id']);
         $mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
+        unset($caption);
         break;
 
     /* Добавление в избранное и корзину */
@@ -502,6 +503,24 @@ $local_text";
         } else
             $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_true'], $data['id']);
         $core->deleteMessage($mysqli_result_users['service_id']);
+        break;
+
+    case 'admin':
+        switch ($callback_type) {
+            case 'edit_profile':
+
+                break;
+
+            case 'order_list':
+
+
+
+
+                $core->editMessageText('hello', $message_id, $keyboard);
+                break;
+        }
+
+
         break;
 
     default:
