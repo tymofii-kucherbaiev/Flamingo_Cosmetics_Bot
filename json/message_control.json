@@ -7,13 +7,24 @@
     "delivery_price": "200",
     "delivery_free": "1000",
     "icon": {
-      "profile": "\uD83D\uDC64"
+      "profile": "\uD83D\uDC64",
+      "new": "\uD83D\uDFE1",
+      "in_work": "\uD83D\uDFE0",
+      "completed": "\uD83D\uDFE2",
+      "cancel": "\uD83D\uDD34"
     },
     "keyboard": {
+      "close": "Закрыть",
       "admin": {
         "order_confirm": "✅ Взять в работу",
         "order_list": "Заказы",
-        "edit_profile": "Редактировать полномочия"
+        "order_status": {
+          "new": "\uD83D\uDFE1 Новые \uD83D\uDFE1",
+          "in_work": "\uD83D\uDFE0 В работе \uD83D\uDFE0",
+          "completed": "\uD83D\uDFE2 Завершённые \uD83D\uDFE2",
+          "cancel": "\uD83D\uDD34 Отмененные \uD83D\uDD34"
+        },
+        "edit_profile": "Полномочия"
       },
       "back_main_search": "Закрыть",
       "main": {

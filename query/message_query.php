@@ -105,6 +105,7 @@ switch ($data['text']) {
 
     case $text_filling['keyboard']['main']['admin']:
         if ($mysqli_result_users['role'] == 'administrator') {
+            $core->deleteMessage($mysqli_result_users['admin_id']);
             $keyboard->keyboard_type = 'inline_keyboard';
 
             $callback = json_decode($core->sendMessage($text_filling['message']['admin_main_menu'], $keyboard->admin_main_menu()), true);
@@ -193,8 +194,9 @@ switch ($data['text']) {
                             $local_sum = $local_sum + ($res_prod['price_old'] * $value['quality']);
                             $local_num++;
                         }
+
+                        $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
                         if ($local_sum <= $text_filling['delivery_price']) {
-                            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
                             $local_text .= "\n <b>📦 Доставка:</b> {$text_filling['delivery_price']} {$text_filling['currency']}";
                             $local_sum = $local_sum + $text_filling['delivery_price'];
                         } else
@@ -220,6 +222,19 @@ $local_text";
                 break;
 
             default:
+
+
+
+
+
+
+
+
+
+
+
+
+
                 if (iconv_strlen($data['text']) == 14) {
                     $data['text'] = substr($data['text'], 1);
                     $keyboard->keyboard_type = 'inline_keyboard';

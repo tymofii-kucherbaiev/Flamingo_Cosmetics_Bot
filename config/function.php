@@ -521,6 +521,24 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
+    public function admin_order_list(): bool|string
+    {
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_status']['new'], action: 'admin', type: 'order_list',
+            variation: 'new', row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_status']['in_work'], action: 'admin', type: 'order_list',
+            variation: 'in_work', row: 0, col: 1);
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_status']['completed'], action: 'admin', type: 'order_list',
+            variation: 'completed', row: 1, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_status']['cancel'], action: 'admin', type: 'order_list',
+            variation: 'cancel', row: 1, col: 1);
+        $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'admin', row: 2, col: 0);
+
+
+
+
+        return json_encode($this->keyboard);
+    }
+
     public function admin_order_control(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['admin']['order_confirm'], action: 'take_to_work', row: 0, col: 0);
@@ -559,9 +577,9 @@ class other
             $local_num++;
         }
 
+        $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$this->text_filling['currency']}";
         if ($local_sum < $this->text_filling['delivery_free']) {
-            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$this->text_filling['currency']}";
-            $local_text .= "\n <b>📦 Доставка:</b> {$this->text_filling['delivery_price']} {$this->text_filling['currency']} (Беслпатная от {$this->text_filling['delivery_free']} {$this->text_filling['currency']})";
+            $local_text .= "\n <b>📦 Доставка:</b> {$this->text_filling['delivery_price']} {$this->text_filling['currency']} (Бесплатная от {$this->text_filling['delivery_free']} {$this->text_filling['currency']})";
             $local_sum = $local_sum + $this->text_filling['delivery_price'];
         } else
             $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";

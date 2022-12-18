@@ -187,7 +187,11 @@ switch ($callback_action) {
                 $profile_order[$user_id]['comment'] = 'Отсутствует';
             }
             file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
-        } else
+        } elseif ($callback_type == 'admin')
+
+            $core->deleteMessage($mysqli_result_users['admin_id']);
+        else
+
             $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
 
@@ -262,9 +266,9 @@ switch ($callback_action) {
                 $local_num++;
             }
 
+            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
             if ($local_sum < 1000) {
-                $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
-                $local_text .= "\n <b>📦 Доставка:</b> {$text_filling['delivery_price']} {$text_filling['currency']} (Беслпатная от {$text_filling['delivery_free']} {$text_filling['currency']})";
+                $local_text .= "\n <b>📦 Доставка:</b> {$text_filling['delivery_price']} {$text_filling['currency']} (Бесплатная от {$text_filling['delivery_free']} {$text_filling['currency']})";
                 $local_sum = $local_sum + $text_filling['delivery_price'];
             } else
                 $local_text .= "\n <b>📦 Доставка: 🆓 Бесплатно 🆓</b>";
@@ -310,9 +314,8 @@ switch ($callback_action) {
     case 'ordering':
         $core->deleteMessage($mysqli_result_users['service_id']);
 
-
         if ($profile_order[$user_id]['remember_order'] === true and $callback_variation == 'set_name') {
-            $callback_variation = 'set_comment';
+            $callback_variation = 'set_delivery';
         }
 
         if ($callback_variation == 'set_edit') {
@@ -378,8 +381,9 @@ switch ($callback_action) {
                 $local_sum = $local_sum + ($res_prod['price_old'] * $value['quality']);
                 $local_num++;
             }
+
+            $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
             if ($local_sum < 1000) {
-                $local_text .= "\n <b>🛒 Сумма заказа:</b> $local_sum {$text_filling['currency']}";
                 $local_text .= "\n <b>📦 Доставка:</b> {$text_filling['delivery_price']} {$text_filling['currency']}";
                 $local_sum = $local_sum + $text_filling['delivery_price'];
             } else
@@ -437,7 +441,7 @@ $local_text";
         else
             $is_delivery = $text_filling['delivery_price'];
 
-        $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $local_sum, \'$is_delivery\', \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'Новый заказ\', 1')");
+        $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $local_sum, \'$is_delivery\', \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'new\', 1')");
         $res_us = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
 
 
@@ -449,7 +453,7 @@ $local_text";
 
 
             if ($res_us['is_delivery'] == 'Бесплатно')
-                $is_delivery = 'Бесплатно';
+                $is_delivery = "{$res_us['payment_amount']} {$text_filling['currency']}";
             else
                 $is_delivery = $res_us['payment_amount'] + $res_us['is_delivery'];
 
@@ -461,7 +465,7 @@ $local_text";
 ————————————————————————
 <b>Сумма заказа:</b> <i>{$res_us['payment_amount']} {$text_filling['currency']}</i>
 <b>Доставка:</b> <i>{$res_us['is_delivery']}</i>
-<b>Общая сумма:</b> <i>$is_delivery {$text_filling['currency']}</i>
+<b>Общая сумма:</b> <i>$is_delivery</i>
 ————————————————————————
 <b>Адресс доставки:</b> <i>{$profile_order[$user_id]['address_pickup']}</i>
 <b>Комментарий:</b> <i>{$profile_order[$user_id]['comment']}</i>
@@ -514,13 +518,38 @@ $local_text";
             case 'order_list':
 
 
+                switch ($callback_variation) {
+                    case 'new':
+                    case 'in_work':
+                    case 'completed':
+                    case 'cancel':
 
 
-                $core->editMessageText('hello', $message_id, $keyboard);
+                        $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE is_status LIKE '$callback_variation' LIMIT 50")->fetchAll();
+
+                        $caption = '';
+
+                        foreach ($mysqli_order_general as $item) {
+                            if ($item['is_delivery'] != $text_filling['delivery_price'])
+                                $is_delivery = " <b>|</b> 🆓";
+
+                            $caption .= "————————————————————————\n";
+                            $caption .= "{$text_filling['icon'][$callback_variation]} <b>|</b> <b>/order_card__{$item['id']}</b> <b>|</b> {$item['payment_amount']} {$text_filling['currency']} <b>|</b> {$item['profile_first_name']}$is_delivery\n";
+
+                            unset($is_delivery);
+                        }
+                        if (count($mysqli_order_general) != 0)
+                            $caption .= "————————————————————————";
+
+                        $core->editMessageText($caption, $message_id, $keyboard->admin_order_list());
+                        break;
+
+                    default:
+                        $core->editMessageText('hello', $message_id, $keyboard->admin_order_list());
+                        break;
+                }
                 break;
         }
-
-
         break;
 
     default:
