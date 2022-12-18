@@ -14,11 +14,11 @@
       "main": {
         "search": "\uD83D\uDD0D Найти товар",
         "help": "❗ Помощь",
-        "admin": "FALSE Управление",
+        "admin": "\uD83D\uDEE0 Управление",
         "favorite": "⭐ Избранное",
         "cart": "\uD83D\uDED2 Корзина",
         "login": "FALSE ⚠ Регицстрация ⚠",
-        "profile": "FALSE \uD83D\uDD10 Мой аккаунт \uD83D\uDD10"
+        "profile": "\uD83D\uDD10 Мой аккаунт"
       },
       "search": {
         "brand": "По брендам",

@@ -233,8 +233,15 @@ class keyboard
     {
         $this->add(text: $this->text_filling['keyboard']['main']['search'], row: 0, col: 0);
         $this->add(text: $this->text_filling['keyboard']['main']['favorite'], row: 1, col: 0);
+
+
 //        $this->add(NULL, text: $this->text_filling['keyboard']['main']['help'], row: 1, col: 1);
         $this->add(text: $this->text_filling['keyboard']['main']['cart'], row: 1, col: 1);
+
+        $this->add(text: $this->text_filling['keyboard']['main']['profile'], row: 2, col: 0);
+
+        if ($this->mysqli_result['role'] == 'administrator')
+            $this->add(text: $this->text_filling['keyboard']['main']['admin'], row: 2, col: 1);
 
         return json_encode($this->keyboard);
     }

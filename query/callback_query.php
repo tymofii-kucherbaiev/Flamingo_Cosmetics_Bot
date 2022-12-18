@@ -439,11 +439,12 @@ $local_text";
         $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $local_sum, \'$is_delivery\', \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'Новый заказ\', 1')");
         $res_us = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
 
-        unset ($is_delivery);
-        $core->sendMessage($text_filling['message']['order']['complete']);
 
+        $callback = json_decode($core->sendMessage($text_filling['message']['order']['complete']), true);
+        $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+
+        unset ($is_delivery, $callback);
         foreach ($mysqli->query("SELECT * FROM users WHERE role LIKE 'administrator'")->fetchAll() as $value) {
-
 
 
             if ($res_us['is_delivery'] == 'Бесплатно')

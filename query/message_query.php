@@ -100,6 +100,10 @@ switch ($data['text']) {
         $core->deleteMessage($mysqli_result_users['message_id']);
         break;
 
+    case $text_filling['keyboard']['main']['admin']:
+
+        break;
+
     default:
         switch ($mysqli_result_users['order_position']) {
             case 'set_name':
@@ -237,18 +241,12 @@ $local_text";
                 } else {
                     $core->deleteMessage($data['message_id']);
                 }
-
         }
-
-
-//
-
         break;
 }
 
 if ($callback)
     $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\', order_position = NULL', '$user_id', 'users')");
-
 
 if ($bool_via_bot === FALSE)
     $core->deleteMessage($mysqli_result_users['callback_id']);
