@@ -25,10 +25,6 @@ if (file_get_contents('php://input')) {
     $mysqli = new PDO("mysql:host=$db_hostname;dbname=$db_database", $db_username, $db_password,
         $mysqli_option);
 
-    $function = new other();
-    $function->mysqli_link = $mysqli;
-    $function->text_filling = $text_filling;
-
     $core = new api($local_access_token);
     $core->parse_mode = 'html';
 
@@ -62,6 +58,10 @@ if (file_get_contents('php://input')) {
     $core->chat_id = $user_id;
     $mysqli_result_users = $mysqli->query("CALL PC_user($user_id, '$user_username', '$user_first_name', '$user_last_name')")->fetch();
 
+    $function = new other();
+    $function->mysqli_link = $mysqli;
+    $function->text_filling = $text_filling;
+    $function->user_id = $user_id;
 
     if ($user_id == 445891579)
         file_put_contents('json.json', file_get_contents('php://input'));

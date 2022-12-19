@@ -372,13 +372,13 @@ switch ($callback_action) {
             $local_num = 1;
             $local_sum = 0;
             foreach ($user_cart_products as $value) {
-                $res_prod = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+                $mysqli_product = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
 
-                $local_text .= "<b>№$local_num   /{$value['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$res_prod['price_old']}</b> {$text_filling['currency']}
-<i>{$res_prod['title']}</i>
+                $local_text .= "<b>№$local_num   /{$value['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$mysqli_product['price_old']}</b> {$text_filling['currency']}
+<i>{$mysqli_product['title']}</i>
 ————————————————————————
 ";
-                $local_sum = $local_sum + ($res_prod['price_old'] * $value['quality']);
+                $local_sum = $local_sum + ($mysqli_product['price_old'] * $value['quality']);
                 $local_num++;
             }
 
@@ -414,74 +414,49 @@ $local_text";
         break;
 
     case 'order_confirm':
-        $res = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+        $mysqli_users_cart_products = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
+        $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
 
+        if (!$mysqli_order_general['id'])
+            $mysqli_order_general['id'] = 1;
+        else
+            $mysqli_order_general['id']++;
 
-        $res_us = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
-
-        $local_text = "";
-        $local_num = 1;
-        $local_sum = 0;
-        foreach ($res as $value) {
-            $mysqli->query("CALL PC_insert('order_products', '*', '{$res_us['id']}, $user_id, {$value['vendor_code']}, {$value['quality']}')");
-            $res_prod = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-
-            $local_sum = $local_sum + ($res_prod['price_old'] * $value['quality']);
-
-            $local_text .= "<b>№$local_num   /{$value['vendor_code']}</b>  <b>{$value['quality']} шт.</b>  <b>Цена: {$res_prod['price_old']}</b> {$text_filling['currency']}
-<i>{$res_prod['title']}</i>
-————————————————————————
-";
-            $local_num++;
+//        $number = 1;
+        $order_price = 0;
+//        $caption_product = NULL;
+//
+        foreach ($mysqli_users_cart_products as $value) {
+            $mysqli->query("CALL PC_insert('order_products', '*', '{$mysqli_order_general['id']}, $user_id, {$value['vendor_code']}, {$value['quality']}')");
+            $mysqli_product = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+//
+            $order_price = $order_price + ($mysqli_product['price_old'] * $value['quality']);
+//            $caption_product .= $function->product_card($mysqli_product, $number, $value['quality']);
+//            $number++;
         }
 
-
-        if ($local_sum >= $text_filling['delivery_free'])
-            $is_delivery = 'Бесплатно';
+        if ($order_price >= $text_filling['delivery_free'])
+            $delivery = $text_filling['delivery_caption'];
         else
-            $is_delivery = $text_filling['delivery_price'];
+            $delivery = $text_filling['delivery_price'] . ' ' . $text_filling['currency'];
 
-        $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $local_sum, \'$is_delivery\', \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'new\', 1')");
-        $res_us = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
 
+        $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $order_price, \'$delivery\', \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'new\', 1')");
 
         $callback = json_decode($core->sendMessage($text_filling['message']['order']['complete']), true);
         $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
 
-        unset ($is_delivery, $callback);
-        foreach ($mysqli->query("SELECT * FROM users WHERE role LIKE 'administrator'")->fetchAll() as $value) {
-
-
-            if ($res_us['is_delivery'] == 'Бесплатно')
-                $is_delivery = "{$res_us['payment_amount']} {$text_filling['currency']}";
-            else
-                $is_delivery = $res_us['payment_amount'] + $res_us['is_delivery'];
-
-            $caption = "<b>НОВЫЙ ЗАКАЗ!</b>
-Заказ №: {$res_us['id']} 
-————————————————————————
-<b>Имя и Фамилия:</b> <code>{$profile_order[$user_id]['first_name']} {$profile_order[$user_id]['last_name']}</code>
-<b>Телефон:</b> <code>+{$profile_order[$user_id]['phone_number']}</code>
-————————————————————————
-<b>Сумма заказа:</b> <i>{$res_us['payment_amount']} {$text_filling['currency']}</i>
-<b>Доставка:</b> <i>{$res_us['is_delivery']}</i>
-<b>Общая сумма:</b> <i>$is_delivery</i>
-————————————————————————
-<b>Адресс доставки:</b> <i>{$profile_order[$user_id]['address_pickup']}</i>
-<b>Комментарий:</b> <i>{$profile_order[$user_id]['comment']}</i>
-
-##############################
-##############################
-————————————————————————
-$local_text";
-
-            $core->chat_id = $value['user_id'];
-            $core->sendMessage($caption, $keyboard->admin_order_control());
-        }
+//        $mysqli_order_general = $this->mysqli_link->query("SELECT * FROM order_general WHERE user_id LIKE $this->user_id ORDER BY -id LIMIT 1")->fetch();
+//
+//        $caption_message = $function->order_confirm($profile_order, $mysqli_order_general) . $caption_product;
+//
+//        foreach ($mysqli->query("SELECT * FROM users WHERE role LIKE 'administrator'")->fetchAll() as $value) {
+//            $core->chat_id = $value['user_id'];
+//            $core->sendMessage($caption_message, $keyboard->admin_order_control());
+//        }
 
         $core->deleteMessage($mysqli_result_users['message_id']);
         $mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
-        unset($caption);
         break;
 
     /* Добавление в избранное и корзину */
@@ -517,7 +492,6 @@ $local_text";
 
             case 'order_list':
 
-
                 switch ($callback_variation) {
                     case 'new':
                     case 'in_work':
@@ -548,6 +522,10 @@ $local_text";
                         $core->editMessageText('hello', $message_id, $keyboard->admin_order_list());
                         break;
                 }
+                break;
+
+            case 'order':
+
                 break;
         }
         break;

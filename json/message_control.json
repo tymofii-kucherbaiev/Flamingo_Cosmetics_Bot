@@ -6,6 +6,7 @@
     "currency": "₽",
     "delivery_price": "200",
     "delivery_free": "1000",
+    "delivery_caption": "Бесплатно",
     "icon": {
       "profile": "\uD83D\uDC64",
       "new": "\uD83D\uDFE1",

@@ -534,14 +534,13 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'admin', row: 2, col: 0);
 
 
-
-
         return json_encode($this->keyboard);
     }
 
     public function admin_order_control(): bool|string
     {
-        $this->add(text: $this->text_filling['keyboard']['admin']['order_confirm'], action: 'take_to_work', row: 0, col: 0);
+        $this->add(text: $this->callback_data_variation, row: 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_confirm'], action: 'admin', type: 'order', variation: 'in_work', row: 0, col: 1);
 
         return json_encode($this->keyboard);
     }
@@ -553,9 +552,11 @@ class other
     public object|null $mysqli_link;
     public array|null $text_filling;
 
+    public int $user_id;
+
     public function profile_list($action = FALSE): string
     {
-        $local_text = "Ваша корзина:\n";
+        $local_text = "Ваша корзина:\n—————————————————————————\n";
         $local_sum = 0;
         $local_num = 1;
 
@@ -568,9 +569,7 @@ class other
             $pr_local = $this->mysqli_link->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
             $local_sum = $local_sum + ($pr_local['price_old'] * $quality);
 
-            $local_text .= "
-—————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>$quality шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$this->text_filling['currency']}
+            $local_text .= "<b>№$local_num   /{$pr_local['vendor_code']}</b>  <b>$quality шт.</b>  <b>Цена: {$pr_local['price_old']}</b> {$this->text_filling['currency']}
 <i>{$pr_local['title']}</i>
 —————————————————————————
 ";
@@ -586,5 +585,37 @@ class other
 
         $local_text .= "\n <b>💳 К оплате:</b> $local_sum {$this->text_filling['currency']}";
         return $local_text;
+    }
+
+    public function product_card($mysqli, $number, $quality): string
+    {
+        return "
+<b>№$number   /{$mysqli['vendor_code']}</b>  <b>$quality шт.</b>  <b>Цена: {$mysqli['price_old']}</b> {$this->text_filling['currency']}
+<i>{$mysqli['title']}</i>
+————————————————————————";
+    }
+
+    public function order_confirm($profile_order, $mysqli_order_general): string
+    {
+        if ($mysqli_order_general['payment_amount'] >= $this->text_filling['delivery_free'])
+            $payment_amount = $mysqli_order_general['payment_amount'];
+        else
+            $payment_amount = $mysqli_order_general['payment_amount'] +  $this->text_filling['delivery_price']. ' ' . $this->text_filling['currency'];
+
+        return "Заказ №: {$mysqli_order_general['id']}
+————————————————————————
+<b>Имя и Фамилия:</b> <code>{$profile_order[$this->user_id]['first_name']} {$profile_order[$this->user_id]['last_name']}</code>
+<b>Телефон:</b> <code>+{$profile_order[$this->user_id]['phone_number']}</code>
+————————————————————————
+<b>Сумма заказа:</b> <i>{$mysqli_order_general['payment_amount']} {$this->text_filling['currency']}</i>
+<b>Доставка:</b> <i>{$mysqli_order_general['is_delivery']}</i>
+<b>Общая сумма:</b> <i>$payment_amount</i>
+————————————————————————
+<b>Адресс доставки:</b> <i>{$profile_order[$this->user_id]['address_pickup']}</i>
+<b>Комментарий:</b> <i>{$profile_order[$this->user_id]['comment']}</i>
+
+##############################
+##############################
+————————————————————————";
     }
 }
