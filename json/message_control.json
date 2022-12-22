@@ -17,8 +17,12 @@
     "keyboard": {
       "close": "Закрыть",
       "admin": {
-        "order_confirm": "✅ Взять в работу",
-        "order_list": "Заказы",
+        "order_work": {
+          "in_work": "✅ Взять в работу",
+          "completed": "✅ Завершить",
+          "cancel": "❌ Отменить"
+        },
+        "order_main_menu": "Заказы",
         "order_status": {
           "new": "\uD83D\uDFE1 Новые \uD83D\uDFE1",
           "in_work": "\uD83D\uDFE0 В работе \uD83D\uDFE0",
@@ -35,7 +39,8 @@
         "favorite": "⭐ Избранное",
         "cart": "\uD83D\uDED2 Корзина",
         "login": "FALSE ⚠ Регицстрация ⚠",
-        "profile": "\uD83D\uDD10 Мой аккаунт"
+        "profile": "\uD83D\uDD10 Мой аккаунт",
+        "history_order": "\uD83D\uDCDD История заказов"
       },
       "search": {
         "brand": "По брендам",
@@ -71,9 +76,9 @@
         "cancel": "❌ Отменить",
         "apply": "✅ Сохранить"
       },
-      "favorite": {
-        "next": "Вперед",
-        "back": "Назад"
+      "scroll": {
+        "next": "Вперед  ➡",
+        "back": "⬅  Назад"
       },
       "number": {
         "1": "  1️⃣  ",
@@ -119,10 +124,10 @@
         "null": "Ваш список желаемого пуст =("
       },
       "help": "Опишите свою проблему",
-      "complete": ", спасибо за регистрацию!\nХорошего дня и удачных покупок!",
-      "new_user": "Добро пожаловать!\n\nПожалуйста пройдите регистрацию.",
       "welcome": ", добро пожаловать!",
-      "admin_main_menu": "Добро пожаловать в управление."
+      "admin_main_menu": "Добро пожаловать в управление.",
+      "profile_main_menu": "Добро пожаловать в личный кабинет",
+      "history_order": "Ваш история заказов"
     },
     "callback": {
       "product_favorite_true": "✅ Товар успешно добавлен в избранное ✅",

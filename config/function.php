@@ -117,7 +117,7 @@ class api
         $this->curl(method: __FUNCTION__, request_params: $request_params);
     }
 
-    public function deleteMessage($message_id, $message_type = 'callback'): void
+    public function deleteMessage($message_id): void
     {
         $request_params = array(
             'chat_id' => $this->chat_id,
@@ -168,7 +168,7 @@ class keyboard
         return json_encode($this->keyboard);
     }
 
-    private function add($keyboard_data_type = 'callback_data', $text = NULl, $url = NULL, $action = NULL, $type = NULL,
+    private function add($keyboard_data_type = 'callback_data', $text = NULl, $action = NULL, $type = NULL,
                          $variation = NULL, $row = NULL, $col = NULL): void
     {
         switch ($keyboard_data_type) {
@@ -184,19 +184,11 @@ class keyboard
                 break;
 
             case 'callback_data':
-                if ($url)
-                    $button =
-                        [
-                            "url" => "tg://user?id=$url",
-                            "text" => $text,
-                            $keyboard_data_type => "action:$action|type:$type|variation:$variation"
-                        ];
-                else
-                    $button =
-                        [
-                            "text" => $text,
-                            $keyboard_data_type => "action:$action|type:$type|variation:$variation"
-                        ];
+                $button =
+                    [
+                        "text" => $text,
+                        $keyboard_data_type => "action:$action|type:$type|variation:$variation"
+                    ];
 
                 $this->keyboard[$this->keyboard_type][$row][$col] = $button;
                 break;
@@ -238,7 +230,7 @@ class keyboard
 //        $this->add(NULL, text: $this->text_filling['keyboard']['main']['help'], row: 1, col: 1);
         $this->add(text: $this->text_filling['keyboard']['main']['cart'], row: 1, col: 1);
 
-        $this->add(text: $this->text_filling['keyboard']['main']['profile'], row: 2, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['main']['history_order'], row: 2, col: 0);
 
         if ($this->mysqli_result['role'] == 'administrator') {
 //            $count = $this->mysqli_link->query("SELECT * FROM order_general WHERE is_status LIKE 'Новый заказ'")->rowCount();
@@ -510,12 +502,29 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
-    /* Admin zone */
+    public function profile_history_order(): bool|string
+    {
+        if ($this->callback_data_variation == 'next') {
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', row: 0, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['scroll']['next'], action: '', row: 0, col: 1);
+        }
+        elseif ($this->callback_data_variation == 'scroll') {
+            $this->add(text: $this->text_filling['keyboard']['scroll']['back'], action: '', row: 0, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['scroll']['next'], action: '', row: 0, col: 1);
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', row: 1, col: 0);
+        }
 
+
+
+
+        return json_encode($this->keyboard);
+    }
+
+    /* Admin zone */
     public function admin_main_menu(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['admin']['edit_profile'], action: 'admin', type: 'edit_profile', row: 0, col: 0);
-        $this->add(text: $this->text_filling['keyboard']['admin']['order_list'], action: 'admin', type: 'order_list', row: 0, col: 1);
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_main_menu'], action: 'admin', type: 'order_list', row: 0, col: 1);
 
 
         return json_encode($this->keyboard);
@@ -539,8 +548,21 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
     public function admin_order_control(): bool|string
     {
-        $this->add(text: $this->callback_data_variation, row: 0, col: 0);
-        $this->add(text: $this->text_filling['keyboard']['admin']['order_confirm'], action: 'admin', type: 'order', variation: 'in_work', row: 0, col: 1);
+
+        switch ($this->callback_data_type) {
+            case 'in_work':
+                $this->add(text: $this->text_filling['keyboard']['admin']['order_work']['completed'], action: 'admin',
+                    type: 'completed', variation: $this->callback_data_variation, row: 0, col: 0);
+                break;
+
+            case 'completed':
+
+            default:
+
+                $this->add(text: $this->text_filling['keyboard']['admin']['order_work']['in_work'], action: 'admin',
+                    type: $this->callback_data_type, variation: $this->callback_data_variation, row: 0, col: 0);
+                break;
+        }
 
         return json_encode($this->keyboard);
     }
@@ -600,19 +622,19 @@ class other
         if ($mysqli_order_general['payment_amount'] >= $this->text_filling['delivery_free'])
             $payment_amount = $mysqli_order_general['payment_amount'];
         else
-            $payment_amount = $mysqli_order_general['payment_amount'] +  $this->text_filling['delivery_price']. ' ' . $this->text_filling['currency'];
+            $payment_amount = $mysqli_order_general['payment_amount'] + $this->text_filling['delivery_price'] . ' ' . $this->text_filling['currency'];
 
         return "Заказ №: {$mysqli_order_general['id']}
 ————————————————————————
-<b>Имя и Фамилия:</b> <code>{$profile_order[$this->user_id]['first_name']} {$profile_order[$this->user_id]['last_name']}</code>
-<b>Телефон:</b> <code>+{$profile_order[$this->user_id]['phone_number']}</code>
+<b>Имя и Фамилия:</b> <a href=\"tg://user?id=$this->user_id\">{$mysqli_order_general['first_name']} {$mysqli_order_general['last_name']}</a>
+<b>Телефон:</b> <code>+{$mysqli_order_general['phone_number']}</code>
 ————————————————————————
 <b>Сумма заказа:</b> <i>{$mysqli_order_general['payment_amount']} {$this->text_filling['currency']}</i>
 <b>Доставка:</b> <i>{$mysqli_order_general['is_delivery']}</i>
 <b>Общая сумма:</b> <i>$payment_amount</i>
 ————————————————————————
-<b>Адресс доставки:</b> <i>{$profile_order[$this->user_id]['address_pickup']}</i>
-<b>Комментарий:</b> <i>{$profile_order[$this->user_id]['comment']}</i>
+<b>Адресс доставки:</b> <i>{$mysqli_order_general['address_pickup']}</i>
+<b>Комментарий:</b> <i>{$mysqli_order_general['comment']}</i>
 
 ##############################
 ##############################

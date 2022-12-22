@@ -35,7 +35,7 @@ switch ($callback_action) {
             $keyboard->callback_data_type = $callback_variation;
             $callback = json_decode($core->sendMessage($text_filling['message']['search']['callback_' . $callback_variation],
                 $keyboard->search_main_product()), true);
-            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
         } else {
             $keyboard->callback_data_type = $callback_type;
             $core->editMessageText($text_filling['message']['search']['callback_' . $callback_type],
@@ -96,7 +96,7 @@ switch ($callback_action) {
 
             $callback = json_decode($core->sendPhoto($mysqli_product_card[0]['title'],
                 $mysqli_product_card[0]['image_id'], $keyboard->search_product_list()), TRUE);
-            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
         }
         $core->deleteMessage($mysqli_result_users['service_id']);
         break;
@@ -110,7 +110,7 @@ switch ($callback_action) {
             $keyboard->callback_data_type = $callback_type;
 
             $callback = json_decode($core->sendMessage($text_filling['message']['search']['main'], $keyboard->search_main_menu()), TRUE);
-            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
         } else {
 
             $core->editMessageText($text_filling['message']['search']['main'], $mysqli_result_users['callback_id'], $keyboard->search_main_menu());
@@ -122,7 +122,7 @@ switch ($callback_action) {
 
         $callback = json_decode($core->sendMessage($sql_result_local['caption'],
             $keyboard->product_description()), TRUE);
-        $mysqli->query("CALL PC_update('service_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+        $mysqli->query("CALL PC_update('service_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
         break;
 
     case 'close':
@@ -163,14 +163,14 @@ switch ($callback_action) {
 //                    $callback = json_decode($core->sendMessage($local_text), true);
 //            } else
 //                $callback = json_decode($core->sendMessage($text_filling['message']['favorite']['null']), true);
-//            $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+//            $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
         } elseif ($callback_type == 'cart') {
             $core->deleteMessage($mysqli_result_users['service_id']);
             $keyboard->mysqli_result =
             $function->mysqli_result =
             $local_user_result =
                 $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
-            $mysqli->query("CALL PC_update('order_position = NULL', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('order_position = NULL', 'users', 'user_id', '$user_id')");
 
             $keyboard->keyboard_type = 'inline_keyboard';
             $core->editMessageText($function->profile_list(), $message_id, $keyboard->profile_list());
@@ -187,9 +187,10 @@ switch ($callback_action) {
                 $profile_order[$user_id]['comment'] = 'Отсутствует';
             }
             file_put_contents('./json/order_general.json', json_encode($profile_order, JSON_UNESCAPED_UNICODE));
-        } elseif ($callback_type == 'admin')
-
+        } elseif ($callback_type == 'admin') {
             $core->deleteMessage($mysqli_result_users['admin_id']);
+            $core->deleteMessage($mysqli_result_users['admin_service_id']);
+        }
         else
 
             $core->deleteMessage($mysqli_result_users['callback_id']);
@@ -202,7 +203,7 @@ switch ($callback_action) {
             $core->answerCallbackQuery(callback_query_id: $data['id']);
             $keyboard->callback_data_type = $callback_variation;
             $callback = json_decode($core->sendMessage('Выберите количество:', $keyboard->count_product_cart()), true);
-            $mysqli->query("CALL PC_update('service_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
+            $mysqli->query("CALL PC_update('service_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
         }
         break;
 
@@ -406,7 +407,7 @@ $local_text";
 
 
         $keyboard->mysqli_result =
-            $mysqli->query("CALL PC_update('{$set_table}order_position = \'{$callback_variation}\'', '$user_id', 'users')")->fetch();
+            $mysqli->query("CALL PC_update('{$set_table}order_position = \'{$callback_variation}\'', 'users', 'user_id', '$user_id')")->fetch();
         $keyboard->callback_data_variation = $callback_variation;
 
 
@@ -415,24 +416,18 @@ $local_text";
 
     case 'order_confirm':
         $mysqli_users_cart_products = $mysqli->query("SELECT * FROM users_cart_products WHERE user_id LIKE $user_id")->fetchAll();
-        $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY -id LIMIT 1")->fetch();
+        $mysqli_order_general = $mysqli->query("SELECT * FROM order_general ORDER BY -id LIMIT 1")->fetch();
 
         if (!$mysqli_order_general['id'])
             $mysqli_order_general['id'] = 1;
         else
             $mysqli_order_general['id']++;
 
-//        $number = 1;
         $order_price = 0;
-//        $caption_product = NULL;
-//
         foreach ($mysqli_users_cart_products as $value) {
             $mysqli->query("CALL PC_insert('order_products', '*', '{$mysqli_order_general['id']}, $user_id, {$value['vendor_code']}, {$value['quality']}')");
             $mysqli_product = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-//
             $order_price = $order_price + ($mysqli_product['price_old'] * $value['quality']);
-//            $caption_product .= $function->product_card($mysqli_product, $number, $value['quality']);
-//            $number++;
         }
 
         if ($order_price >= $text_filling['delivery_free'])
@@ -440,20 +435,12 @@ $local_text";
         else
             $delivery = $text_filling['delivery_price'] . ' ' . $text_filling['currency'];
 
+        $date = date("d-m-Y");
 
-        $mysqli->query("CALL PC_insert('order_general', 'user_id, profile_first_name, profile_last_name, payment_amount, is_delivery, address_pickup, phone_number, is_comment, is_status, is_active', '$user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $order_price, \'$delivery\', \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'new\', 1')");
+        $mysqli->query("CALL PC_insert('order_general', '*', 'NULL, $user_id, \'{$profile_order[$user_id]['first_name']}\', \'{$profile_order[$user_id]['last_name']}\', $order_price, \'$delivery\', NULL, \'{$profile_order[$user_id]['address_pickup']}\', {$profile_order[$user_id]['phone_number']}, \'{$profile_order[$user_id]['comment']}\', \'new\', \'$date\'')");
 
         $callback = json_decode($core->sendMessage($text_filling['message']['order']['complete']), true);
-        $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', '$user_id', 'users')");
-
-//        $mysqli_order_general = $this->mysqli_link->query("SELECT * FROM order_general WHERE user_id LIKE $this->user_id ORDER BY -id LIMIT 1")->fetch();
-//
-//        $caption_message = $function->order_confirm($profile_order, $mysqli_order_general) . $caption_product;
-//
-//        foreach ($mysqli->query("SELECT * FROM users WHERE role LIKE 'administrator'")->fetchAll() as $value) {
-//            $core->chat_id = $value['user_id'];
-//            $core->sendMessage($caption_message, $keyboard->admin_order_control());
-//        }
+        $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
 
         $core->deleteMessage($mysqli_result_users['message_id']);
         $mysqli->query("DELETE FROM users_cart_products WHERE user_id LIKE $user_id");
@@ -476,7 +463,7 @@ $local_text";
 
         if ($pr_local['error']) {
             if ($table_name == 'favorite') {
-                $mysqli->query("DELETE FROM users_favorite_products WHERE user_id LIKE $user_id AND users_favorite_products.vendor_code LIKE $callback_variation");
+                $mysqli->query("DELETE FROM users_favorite_products WHERE user1_id LIKE $user_id AND users_favorite_products.vendor_code LIKE $callback_variation");
             }
             $core->answerCallbackQuery($text_filling['callback'][$callback_action . '_false'], $data['id'], true);
         } else
@@ -504,11 +491,11 @@ $local_text";
                         $caption = '';
 
                         foreach ($mysqli_order_general as $item) {
-                            if ($item['is_delivery'] != $text_filling['delivery_price'])
+                            if ($item['is_delivery'] == $text_filling['delivery_caption'])
                                 $is_delivery = " <b>|</b> 🆓";
 
                             $caption .= "————————————————————————\n";
-                            $caption .= "{$text_filling['icon'][$callback_variation]} <b>|</b> <b>/order_card__{$item['id']}</b> <b>|</b> {$item['payment_amount']} {$text_filling['currency']} <b>|</b> {$item['profile_first_name']}$is_delivery\n";
+                            $caption .= "{$text_filling['icon'][$callback_variation]} <b>|</b> <b>/order_card__{$item['id']}</b> <b>|</b> {$item['payment_amount']} {$text_filling['currency']} <b>|</b> {$item['first_name']}$is_delivery\n";
 
                             unset($is_delivery);
                         }
@@ -524,7 +511,20 @@ $local_text";
                 }
                 break;
 
-            case 'order':
+
+            case 'new':
+            case 'in_work':
+            case 'completed':
+            case 'cancel':
+                if ($callback_type == 'new')
+                    $is_status = 'in_work';
+                else
+                    $is_status = $callback_type;
+
+                $mysqli->query("CALL PC_update('is_status = \'$is_status\'','order_general', 'id', '$callback_variation')");
+
+                $core->deleteMessage($message_id);
+
 
                 break;
         }
