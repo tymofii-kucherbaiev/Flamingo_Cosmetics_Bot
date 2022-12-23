@@ -133,37 +133,6 @@ switch ($callback_action) {
         elseif ($callback_type == 'favorite') {
             $core->deleteMessage($data['message']['message_id']);
             $core->deleteMessage($mysqli_result_users['service_id']);
-//            $local_user_result = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id")->fetchAll();
-//
-//            if ($local_user_result) {
-//
-//                $quality_row = count($local_user_result);
-//                if ($quality_row > 5) {
-//                    $keyboard->keyboard_type = 'inline_keyboard';
-//                    $keyboard->callback_data_action = 'primary';
-//                }
-//
-//                $local_text = "Ваш список желаемого:\n";
-//                $local_num = 1;
-//
-//                foreach ($local_user_result as $value) {
-//                    $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
-//
-//                    $local_text .= "
-//—————————————————————————
-//<b>№$local_num   /{$pr_local['vendor_code']}</b>    <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
-//<i>{$pr_local['title']}</i>
-//—————————————————————————
-//";
-//                    $local_num++;
-//                }
-//                if ($quality_row > 5)
-//                    $callback = json_decode($core->sendMessage($local_text, $keyboard->profile_favorite()), true);
-//                else
-//                    $callback = json_decode($core->sendMessage($local_text), true);
-//            } else
-//                $callback = json_decode($core->sendMessage($text_filling['message']['favorite']['null']), true);
-//            $mysqli->query("CALL PC_update('message_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
         } elseif ($callback_type == 'cart') {
             $core->deleteMessage($mysqli_result_users['service_id']);
             $keyboard->mysqli_result =
@@ -190,8 +159,7 @@ switch ($callback_action) {
         } elseif ($callback_type == 'admin') {
             $core->deleteMessage($mysqli_result_users['admin_id']);
             $core->deleteMessage($mysqli_result_users['admin_service_id']);
-        }
-        else
+        } else
 
             $core->deleteMessage($mysqli_result_users['callback_id']);
         break;
@@ -412,6 +380,72 @@ $local_text";
 
 
         $core->editMessageText($text_filling['message']['order'][$callback_variation] . $caption, $message_id, $keyboard->ordering());
+        break;
+
+
+    case 'order_history':
+        if ($callback_variation == NULL)
+            $offset = 20;
+        else
+            if ($callback_type == 'next')
+                $offset = $callback_variation + 20;
+            else
+                $offset = $callback_variation - 20;
+
+        $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY id DESC LIMIT 21 OFFSET $offset")->fetchAll();
+
+        $count = count($mysqli_order_general);
+
+
+        if ($callback_variation == 20 and $offset == 0)
+            $keyboard->callback_data_type = 'next';
+        elseif ($count < 20)
+            $keyboard->callback_data_type = 'back';
+        elseif ($count == 20 AND $offset == 20)
+            $keyboard->callback_data_type = 'back';
+        else
+            $keyboard->callback_data_type = 'scroll';
+
+
+        $caption = "————————————————————————
+| {$text_filling['icon']['new']} | Новый
+————————————————————————
+| {$text_filling['icon']['in_work']} | В работе
+————————————————————————
+| {$text_filling['icon']['completed']} | Завершённый
+————————————————————————
+| {$text_filling['icon']['cancel']} | Отмененный
+————————————————————————\n\n";
+        $i = 1;
+        foreach ($mysqli_order_general as $item) {
+            $is_status = match ($item['is_status']) {
+                'new' => $text_filling['icon']['new'],
+                'in_work' => $text_filling['icon']['in_work'],
+                'completed' => $text_filling['icon']['completed'],
+                default => $text_filling['icon']['cancel'],
+            };
+
+            $caption .= "————————————————————————\n";
+            $caption .= "<b>|</b> $is_status <b>|</b> <b>/my_order__{$item['id']}</b> <b>|</b> {$item['date_time']} <b>|</b> {$item['payment_amount']} {$text_filling['currency']}\n";
+
+            unset($is_delivery);
+            if ($i >= 20)
+                break;
+            else
+                $i++;
+        }
+
+        if (count($mysqli_order_general) != 0)
+            $caption .= "————————————————————————";
+
+
+        $keyboard->callback_data_variation = $offset;
+
+
+        $keyboard->keyboard_type = 'inline_keyboard';
+
+        $core->editMessageText($caption, $message_id, $keyboard->profile_history_order());
+
         break;
 
     case 'order_confirm':

@@ -140,12 +140,11 @@ class keyboard
     /* mysqli_result */
     public object|null $mysqli_link;
 
-    /* mysqli_link */
-    public string|null $callback_data_variation;
 
     /* callback_data */
-    public string|null $callback_data_action;
-    public string|bool|null $callback_data_type;
+    public string|null $callback_data_variation = NULL;
+    public string|null $callback_data_action = NULL;
+    public string|bool|null $callback_data_type = NULL;
     private array|null $text_filling;
 
     /* Private */
@@ -504,17 +503,27 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
     public function profile_history_order(): bool|string
     {
-        if ($this->callback_data_variation == 'next') {
-            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', row: 0, col: 0);
-            $this->add(text: $this->text_filling['keyboard']['scroll']['next'], action: '', row: 0, col: 1);
-        }
-        elseif ($this->callback_data_variation == 'scroll') {
-            $this->add(text: $this->text_filling['keyboard']['scroll']['back'], action: '', row: 0, col: 0);
-            $this->add(text: $this->text_filling['keyboard']['scroll']['next'], action: '', row: 0, col: 1);
-            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', row: 1, col: 0);
-        }
+        if ($this->callback_data_type == 'scroll') {
+            $this->add(text: $this->text_filling['keyboard']['scroll']['back'], action: 'order_history',
+                type: 'back', variation: $this->callback_data_variation, row: 0, col: 0);
 
+            $this->add(text: $this->text_filling['keyboard']['scroll']['next'], action: 'order_history',
+                type: 'next', variation: $this->callback_data_variation, row: 0, col: 1);
 
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 1, col: 0);
+        } elseif ($this->callback_data_type == 'next') {
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 0, col: 0);
+
+            $this->add(text: $this->text_filling['keyboard']['scroll']['next'], action: 'order_history',
+                type: 'next', variation: $this->callback_data_variation, row: 0, col: 1);
+        } elseif ($this->callback_data_type == 'back') {
+            $this->add(text: $this->text_filling['keyboard']['scroll']['back'], action: 'order_history',
+                type: 'back', variation: $this->callback_data_variation, row: 0, col: 0);
+
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 0, col: 1);
+        } else {
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 0, col: 0);
+        }
 
 
         return json_encode($this->keyboard);

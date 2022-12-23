@@ -115,10 +115,10 @@ switch ($data['text']) {
 
     case $text_filling['keyboard']['main']['history_order']:
 
-        if ($mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id")->rowCount() <= 50) {
-            $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY id DESC LIMIT 50")->fetchAll();
+//        if ($mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id")->rowCount() <= 50) {
+        $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY id DESC")->fetchAll();
 
-            $caption = "————————————————————————
+        $caption = "————————————————————————
 | {$text_filling['icon']['new']} | Новый
 ————————————————————————
 | {$text_filling['icon']['in_work']} | В работе
@@ -127,53 +127,37 @@ switch ($data['text']) {
 ————————————————————————
 | {$text_filling['icon']['cancel']} | Отмененный
 ————————————————————————\n\n";
+        $i = 0;
+        foreach ($mysqli_order_general as $item) {
+            if ($i >= 20)
+                break;
+            else
+                $i++;
 
-            foreach ($mysqli_order_general as $item) {
-                switch ($item['is_status']) {
-                    case 'new':
-                        $is_status = $text_filling['icon']['new'];
-                        break;
+            $is_status = match ($item['is_status']) {
+                'new' => $text_filling['icon']['new'],
+                'in_work' => $text_filling['icon']['in_work'],
+                'completed' => $text_filling['icon']['completed'],
+                default => $text_filling['icon']['cancel'],
+            };
 
-                    case 'in_work':
-                        $is_status = $text_filling['icon']['in_work'];
+            $caption .= "————————————————————————\n";
+            $caption .= "<b>|</b> $is_status <b>|</b> <b>/my_order__{$item['id']}</b> <b>|</b> {$item['date_time']} <b>|</b> {$item['payment_amount']} {$text_filling['currency']}\n";
 
-                        break;
+            unset($is_delivery);
 
-                    case 'completed':
-                        $is_status = $text_filling['icon']['completed'];
-
-                        break;
-
-                    case 'cancel':
-                        $is_status = $text_filling['icon']['cancel'];
-
-                        break;
-                }
-
-                $caption .= "————————————————————————\n";
-                $caption .= "<b>|</b> $is_status <b>|</b> <b>/my_order__{$item['id']}</b> <b>|</b> {$item['date_time']} <b>|</b> {$item['payment_amount']} {$text_filling['currency']}\n";
-
-                unset($is_delivery);
-            }
-            if (count($mysqli_order_general) != 0)
-                $caption .= "————————————————————————";
-
-
-            $core->sendMessage($caption);
-        } else {
-
-            $keyboard->keyboard_type = 'inline_keyboard';
-            $keyboard->callback_data_variation = 'next';
-            $callback = json_decode($core->sendMessage($text_filling['message']['history_order'],
-                $keyboard->profile_history_order()), true);
         }
 
+        if (count($mysqli_order_general) != 0)
+            $caption .= "————————————————————————";
+        $keyboard->keyboard_type = 'inline_keyboard';
+        if (count($mysqli_order_general) > 20) {
+            $keyboard->callback_data_type = 'next';
 
-//
+        }
+        $callback = json_decode($core->sendMessage($caption, $keyboard->profile_history_order()), true);
 
-
-//        $mysqli->query("CALL PC_update('callback_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
-//        $core->deleteMessage($mysqli_result_users['message_id']);
+        $core->deleteMessage($mysqli_result_users['message_id']);
         break;
 
     default:
