@@ -75,6 +75,7 @@ switch ($callback_action) {
                     $scroll = $keyboard->callback_data_type = $scroll_callback_type - 1;
             }
 
+
             $keyboard->mysqli_result = $mysqli_product_card =
                 $mysqli->query("CALL PC_product_card('$product_callback_variation', $product_callback_type)")->fetchAll();
 

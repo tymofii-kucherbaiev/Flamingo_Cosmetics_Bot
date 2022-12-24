@@ -71,6 +71,7 @@ if (file_get_contents('php://input')) {
     $keyboard->mysqli_result = $mysqli_result_users;
     $keyboard->mysqli_link = $mysqli;
     $keyboard->user_id = $user_id;
+    $keyboard->role = $mysqli_result_users['role'];
 
     if ($bool_inline_query === TRUE) {
         require $_SERVER['DOCUMENT_ROOT'] . '/query/inline_query.php';

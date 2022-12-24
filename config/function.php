@@ -132,14 +132,14 @@ class keyboard
 {
     public string $keyboard_type = 'keyboard';
     public string $user_id;
+    public string $role;
 
     /* construct */
     public bool $one_time_keyboard = false;
-    public array|null $mysqli_result;
 
-    /* mysqli_result */
+    /* mysqli */
     public object|null $mysqli_link;
-
+    public array|null $mysqli_result;
 
     /* callback_data */
     public string|null $callback_data_variation = NULL;
@@ -231,12 +231,9 @@ class keyboard
 
         $this->add(text: $this->text_filling['keyboard']['main']['history_order'], row: 2, col: 0);
 
-        if ($this->mysqli_result['role'] == 'administrator') {
-//            $count = $this->mysqli_link->query("SELECT * FROM order_general WHERE is_status LIKE 'Новый заказ'")->rowCount();
-
-
+        if ($this->mysqli_result['role'] == 'administrator')
             $this->add(text: $this->text_filling['keyboard']['main']['admin'], row: 2, col: 1);
-        }
+
         return json_encode($this->keyboard);
     }
 
@@ -478,26 +475,58 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
     public function product_card(): bool|string
     {
+        if ($this->role == 'administrator') {
+            $brand = $this->mysqli_link->query("SELECT * FROM brand WHERE id LIKE {$this->mysqli_result['brand_id']}")->fetch();
+            $category = $this->mysqli_link->query("SELECT * FROM category WHERE id LIKE {$this->mysqli_result['category_id']}")->fetch();
 
-        if ($this->mysqli_link->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $this->user_id AND vendor_code LIKE {$this->mysqli_result['vendor_code']}")->rowCount() == 1)
-            $local_variation_favorite = 'fill';
-        else
-            $local_variation_favorite = 'null';
+            $active = match ($this->mysqli_result['is_active']) {
+                1 => 'Активно',
+                0 => 'Скрыто',
+            };
 
-        $this->add(text: $this->text_filling['keyboard']['product']['favorite_' . $local_variation_favorite], action: 'product_favorite',
-            variation: $this->mysqli_result['vendor_code'], row: 0, col: 0);
+            $this->add(text: '📝 Цена: ' . $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'],
+                type: $this->mysqli_result['category_id'], row: 0, col: 0);
 
-        $this->add(text: $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'],
-            type: $this->mysqli_result['category_id'], row: 0, col: 1);
+            $this->add(text: '📝 Видимость: ' . $active,
+                type: $this->mysqli_result['category_id'], row: 0, col: 1);
 
-        $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_count',
-            variation: $this->mysqli_result['vendor_code'], row: 0, col: 2);
+            $this->add(text: '📝 Категория: ' . $category['description'],
+                type: $this->mysqli_result['category_id'], row: 1, col: 0);
 
-        $this->add(text: $this->text_filling['keyboard']['product']['description'], action: 'description',
-            type: $this->mysqli_result['vendor_code'], row: 1, col: 0);
-        //
-        $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close', type: 'favorite', row: 2, col: 0);
 
+            $this->add(text: '📝 Бренд: ' . $brand['description'],
+                type: $this->mysqli_result['category_id'], row: 2, col: 0);
+
+
+            $this->add(text: '📝 Описание', action: 'product_favorite',
+                variation: $this->mysqli_result['vendor_code'], row: 3, col: 0);
+
+            $this->add(text: '📝 Название', action: 'product_favorite',
+                variation: $this->mysqli_result['vendor_code'], row: 3, col: 1);
+
+            $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close', type: 'favorite', row: 4, col: 0);
+
+
+        } else {
+            if ($this->mysqli_link->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $this->user_id AND vendor_code LIKE {$this->mysqli_result['vendor_code']}")->rowCount() == 1)
+                $local_variation_favorite = 'fill';
+            else
+                $local_variation_favorite = 'null';
+
+            $this->add(text: $this->text_filling['keyboard']['product']['favorite_' . $local_variation_favorite], action: 'product_favorite',
+                variation: $this->mysqli_result['vendor_code'], row: 0, col: 0);
+
+            $this->add(text: $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'],
+                type: $this->mysqli_result['category_id'], row: 0, col: 1);
+
+            $this->add(text: $this->text_filling['keyboard']['product']['cart'], action: 'product_count',
+                variation: $this->mysqli_result['vendor_code'], row: 0, col: 2);
+
+            $this->add(text: $this->text_filling['keyboard']['product']['description'], action: 'description',
+                type: $this->mysqli_result['vendor_code'], row: 1, col: 0);
+            //
+            $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close', type: 'favorite', row: 2, col: 0);
+        }
         return json_encode($this->keyboard);
     }
 
@@ -525,6 +554,13 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
             $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 0, col: 0);
         }
 
+
+        return json_encode($this->keyboard);
+    }
+
+    public function close(): bool|string
+    {
+        $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: $this->callback_data_type, row: 0, col: 0);
 
         return json_encode($this->keyboard);
     }
@@ -626,7 +662,27 @@ class other
 ————————————————————————";
     }
 
-    public function order_confirm($profile_order, $mysqli_order_general): string
+    public function order_history($mysqli_order_general): string
+    {
+        if ($mysqli_order_general['payment_amount'] >= $this->text_filling['delivery_free'])
+            $payment_amount = $mysqli_order_general['payment_amount'];
+        else
+            $payment_amount = $mysqli_order_general['payment_amount'] + $this->text_filling['delivery_price'] . ' ' . $this->text_filling['currency'];
+
+        return "Заказ №: {$mysqli_order_general['id']}
+————————————————————————
+<b>Сумма заказа:</b> <i>{$mysqli_order_general['payment_amount']} {$this->text_filling['currency']}</i>
+<b>Доставка:</b> <i>{$mysqli_order_general['is_delivery']}</i>
+<b>Общая сумма:</b> <i>$payment_amount</i>
+————————————————————————
+<b>Адресс доставки:</b> <i>{$mysqli_order_general['address_pickup']}</i>
+<b>Комментарий:</b> <i>{$mysqli_order_general['is_comment']}</i>
+————————————————————————
+
+————————————————————————";
+    }
+
+    public function order_confirm($mysqli_order_general): string
     {
         if ($mysqli_order_general['payment_amount'] >= $this->text_filling['delivery_free'])
             $payment_amount = $mysqli_order_general['payment_amount'];
@@ -643,10 +699,9 @@ class other
 <b>Общая сумма:</b> <i>$payment_amount</i>
 ————————————————————————
 <b>Адресс доставки:</b> <i>{$mysqli_order_general['address_pickup']}</i>
-<b>Комментарий:</b> <i>{$mysqli_order_general['comment']}</i>
+<b>Комментарий:</b> <i>{$mysqli_order_general['is_comment']}</i>
+————————————————————————
 
-##############################
-##############################
 ————————————————————————";
     }
 }

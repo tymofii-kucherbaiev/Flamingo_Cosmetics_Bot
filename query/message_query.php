@@ -287,7 +287,7 @@ $local_text";
                         $number++;
                     }
 
-                    $caption_message = $function->order_confirm($profile_order, $mysqli_order_general) . $caption_product;
+                    $caption_message = $function->order_confirm($mysqli_order_general) . $caption_product;
 
                     $keyboard->keyboard_type = 'inline_keyboard';
                     $keyboard->callback_data_variation = $order_id;
@@ -298,6 +298,31 @@ $local_text";
                     $callback = json_decode($core->sendMessage($caption_message, $local_keyboard), true);
                     $mysqli->query("CALL PC_update('admin_service_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
                     $core->deleteMessage($mysqli_result_users['admin_service_id']);
+                } elseif (stristr($data['text'], 'my_order') == substr($data['text'], 1)) {
+                    $order_id = explode('__', $data['text'])[1];
+
+                    $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE id LIKE $order_id")->fetch();
+                    $mysqli_order_products = $mysqli->query("SELECT * FROM order_products WHERE order_id LIKE $order_id")->fetchAll();
+                    $number = 1;
+                    $caption_product = NULL;
+
+                    foreach ($mysqli_order_products as $value) {
+                        $mysqli_product = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+                        $caption_product .= $function->product_card($mysqli_product, $number, $value['quality']);
+                        $number++;
+                    }
+
+
+                    $caption_message = $function->order_history($mysqli_order_general) . $caption_product;
+
+                    $keyboard->keyboard_type = 'inline_keyboard';
+                    $keyboard->callback_data_type = 'extra';
+
+                    $callback = json_decode($core->sendMessage($caption_message, $keyboard->close()), true);
+
+                    $mysqli->query("CALL PC_update('admin_service_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
+                    $core->deleteMessage($mysqli_result_users['admin_service_id']);
+
                 } elseif (iconv_strlen($data['text']) == 14) {
                     $data['text'] = substr($data['text'], 1);
                     $keyboard->keyboard_type = 'inline_keyboard';
