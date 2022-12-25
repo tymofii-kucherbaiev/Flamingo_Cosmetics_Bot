@@ -341,7 +341,22 @@ $local_text";
                         $keyboard->mysqli_result = $mysqli_product_card =
                             $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$data['text']}")->fetch();
 
-                        $callback = json_decode($core->sendPhoto($mysqli_product_card['title'], $mysqli_product_card['image_id'], $keyboard->product_card()), true);
+                        if ($mysqli_result_users['role'] == 'administrator') {
+                            $brand = $mysqli->query("SELECT * FROM brand WHERE id LIKE {$mysqli_product_card['brand_id']}")->fetch();
+                            $category = $mysqli->query("SELECT * FROM category WHERE id LIKE {$mysqli_product_card['category_id']}")->fetch();
+
+                            $caption = "<b>Название:</b> <u><b>" . $mysqli_product_card['title'] . "</b></u>\n";
+                            $caption .= "<b>Категория:</b> <u><b>" . $category['description'] . "</b></u>\n";
+                            $caption .= "<b>Бренд:</b> <u><b>" . $brand['description'] . "</b></u>\n";
+                            $caption .= "—————————————————————————\n";
+                            $caption .= "<b>Описание:</b> <i>" . $mysqli_product_card['caption'] . "</i>\n";
+
+
+                        } else
+                            $caption = $mysqli_product_card['title'];
+
+
+                        $callback = json_decode($core->sendPhoto($caption, $mysqli_product_card['image_id'], $keyboard->product_card()), true);
                         $core->deleteMessage($mysqli_result_users['extra_id']);
                     }
                     $mysqli->query("CALL PC_update('extra_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");

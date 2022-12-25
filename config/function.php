@@ -59,6 +59,7 @@ class api
             'chat_id' => $this->chat_id,
             'photo' => $image,
             'caption' => $text,
+            'parse_mode' => $this->parse_mode,
             'protect_content' => $this->protect_content,
             'reply_markup' => $reply_markup);
 
@@ -475,36 +476,35 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
 
     public function product_card(): bool|string
     {
+        $row = 0;
         if ($this->role == 'administrator') {
-            $brand = $this->mysqli_link->query("SELECT * FROM brand WHERE id LIKE {$this->mysqli_result['brand_id']}")->fetch();
-            $category = $this->mysqli_link->query("SELECT * FROM category WHERE id LIKE {$this->mysqli_result['category_id']}")->fetch();
-
             $active = match ($this->mysqli_result['is_active']) {
-                1 => 'Активно',
-                0 => 'Скрыто',
+                1 => '✅',
+                0 => '❌',
             };
 
-            $this->add(text: '📝 Цена: ' . $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'],
-                type: $this->mysqli_result['category_id'], row: 0, col: 0);
+            $this->add(text: '🛠 Цена: ' . $this->mysqli_result['price_old'] . ' ' . $this->text_filling['currency'],
+                type: $this->mysqli_result['category_id'], row: $row, col: 0);
 
-            $this->add(text: '📝 Видимость: ' . $active,
-                type: $this->mysqli_result['category_id'], row: 0, col: 1);
+            $this->add(text: '🛠 Видимость: ' . $active,
+                type: $this->mysqli_result['category_id'], row: $row++, col: 1);
 
-            $this->add(text: '📝 Категория: ' . $category['description'],
-                type: $this->mysqli_result['category_id'], row: 1, col: 0);
+            $this->add(text: '🛠 Категория',
+                type: $this->mysqli_result['category_id'], row: $row, col: 0);
 
+            $this->add(text: '🛠 Бренд',
+                type: $this->mysqli_result['category_id'], row: $row++, col: 1);
 
-            $this->add(text: '📝 Бренд: ' . $brand['description'],
-                type: $this->mysqli_result['category_id'], row: 2, col: 0);
+            $this->add(text: '🛠 Описание', action: 'product_favorite',
+                variation: $this->mysqli_result['vendor_code'], row: $row, col: 0);
 
+            $this->add(text: '🛠 Фото', action: 'product_favorite',
+                variation: $this->mysqli_result['vendor_code'], row: $row, col: 1);
 
-            $this->add(text: '📝 Описание', action: 'product_favorite',
-                variation: $this->mysqli_result['vendor_code'], row: 3, col: 0);
+            $this->add(text: '🛠 Название', action: 'product_favorite',
+                variation: $this->mysqli_result['vendor_code'], row: $row++, col: 2);
 
-            $this->add(text: '📝 Название', action: 'product_favorite',
-                variation: $this->mysqli_result['vendor_code'], row: 3, col: 1);
-
-            $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close', type: 'favorite', row: 4, col: 0);
+            $this->add(text: $this->text_filling['keyboard']['back_main_search'], action: 'close', type: 'favorite', row: $row, col: 0);
 
 
         } else {
