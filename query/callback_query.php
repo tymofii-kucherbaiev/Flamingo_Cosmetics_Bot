@@ -383,26 +383,79 @@ $local_text";
         $core->editMessageText($text_filling['message']['order'][$callback_variation] . $caption, $message_id, $keyboard->ordering());
         break;
 
+    case 'profile_favorite':
+        if ($callback_variation == NULL)
+            $offset = 10;
+        else
+            if ($callback_type == 'next')
+                $offset = $callback_variation + 10;
+            else
+                $offset = $callback_variation - 10;
+
+        $mysqli_favorite = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id LIMIT 11 OFFSET $offset")->fetchAll();
+
+        $count = count($mysqli_favorite);
+
+
+        if ($callback_variation == 10 and $offset == 0)
+            $keyboard->callback_data_type = 'next';
+        elseif ($count < 10)
+            $keyboard->callback_data_type = 'back';
+        elseif ($count == 10 AND $offset == 10)
+            $keyboard->callback_data_type = 'back';
+        else
+            $keyboard->callback_data_type = 'scroll';
+
+
+        $caption = NULL;
+        $i = 1;
+        foreach ($mysqli_favorite as $item) {
+
+
+            $info_product = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$item['vendor_code']}")->fetch();
+
+
+            $caption .= "————————————————————————\n";
+            $caption .= "<b>№$i   /{$info_product['vendor_code']}   Цена: {$info_product['price_old']} {$text_filling['currency']}</b>
+<i>{$info_product['title']}</i>\n";
+            if ($i >= 10)
+                break;
+            else
+                $i++;
+        }
+
+        if (count($mysqli_favorite) != 0)
+            $caption .= "————————————————————————";
+
+
+        $keyboard->callback_data_variation = $offset;
+
+
+        $keyboard->keyboard_type = 'inline_keyboard';
+
+        $core->editMessageText($caption, $message_id, $keyboard->profile_favorite());
+
+        break;
 
     case 'order_history':
         if ($callback_variation == NULL)
-            $offset = 20;
+            $offset = 10;
         else
             if ($callback_type == 'next')
-                $offset = $callback_variation + 20;
+                $offset = $callback_variation + 10;
             else
-                $offset = $callback_variation - 20;
+                $offset = $callback_variation - 10;
 
-        $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY id DESC LIMIT 21 OFFSET $offset")->fetchAll();
+        $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY id DESC LIMIT 11 OFFSET $offset")->fetchAll();
 
         $count = count($mysqli_order_general);
 
 
-        if ($callback_variation == 20 and $offset == 0)
+        if ($callback_variation == 10 and $offset == 0)
             $keyboard->callback_data_type = 'next';
-        elseif ($count < 20)
+        elseif ($count < 10)
             $keyboard->callback_data_type = 'back';
-        elseif ($count == 20 AND $offset == 20)
+        elseif ($count == 10 AND $offset == 10)
             $keyboard->callback_data_type = 'back';
         else
             $keyboard->callback_data_type = 'scroll';
@@ -419,6 +472,8 @@ $local_text";
 ————————————————————————\n\n";
         $i = 1;
         foreach ($mysqli_order_general as $item) {
+
+
             $is_status = match ($item['is_status']) {
                 'new' => $text_filling['icon']['new'],
                 'in_work' => $text_filling['icon']['in_work'],
@@ -429,8 +484,7 @@ $local_text";
             $caption .= "————————————————————————\n";
             $caption .= "<b>|</b> $is_status <b>|</b> <b>/my_order__{$item['id']}</b> <b>|</b> {$item['date_time']} <b>|</b> {$item['payment_amount']} {$text_filling['currency']}\n";
 
-            unset($is_delivery);
-            if ($i >= 20)
+            if ($i >= 10)
                 break;
             else
                 $i++;

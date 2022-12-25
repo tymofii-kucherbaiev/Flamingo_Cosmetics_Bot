@@ -70,34 +70,35 @@ switch ($data['text']) {
         break;
 
     case $text_filling['keyboard']['main']['favorite']:
-        $local_user_result = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id")->fetchAll();
+        $mysqli_favorite = $mysqli->query("SELECT * FROM users_favorite_products WHERE user_id LIKE $user_id")->fetchAll();
 
-        if ($local_user_result) {
+        if ($mysqli_favorite) {
 
-            $quality_row = count($local_user_result);
-            if ($quality_row > 5) {
-                $keyboard->keyboard_type = 'inline_keyboard';
-                $keyboard->callback_data_action = 'primary';
+
+            $keyboard->keyboard_type = 'inline_keyboard';
+            if (count($mysqli_favorite) > 10) {
+                $keyboard->callback_data_type = 'next';
+
             }
 
-            $local_text = "Ваш список желаемого:\n";
-            $local_num = 1;
+            $i = 0;
+            $caption = NULL;
+            foreach ($mysqli_favorite as $item) {
+                if ($i >= 10)
+                    break;
+                else
+                    $i++;
 
-            foreach ($local_user_result as $value) {
-                $pr_local = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$value['vendor_code']}")->fetch();
+                $info_product = $mysqli->query("SELECT * FROM product WHERE vendor_code LIKE {$item['vendor_code']}")->fetch();
 
-                $local_text .= "
-—————————————————————————
-<b>№$local_num   /{$pr_local['vendor_code']}</b>    <b>Цена: {$pr_local['price_old']}</b> {$text_filling['currency']}
-<i>{$pr_local['title']}</i>
-—————————————————————————
-";
-                $local_num++;
+
+                $caption .= "————————————————————————\n";
+                $caption .= "<b>№$i   /{$info_product['vendor_code']}   Цена: {$info_product['price_old']} {$text_filling['currency']}</b>
+<i>{$info_product['title']}</i>\n";
+
             }
-            if ($quality_row > 5)
-                $callback = json_decode($core->sendMessage($local_text, $keyboard->profile_favorite()), true);
-            else
-                $callback = json_decode($core->sendMessage($local_text), true);
+            $caption .= "————————————————————————";
+            $callback = json_decode($core->sendMessage($caption, $keyboard->profile_favorite()), true);
         } else
             $callback = json_decode($core->sendMessage($text_filling['message']['favorite']['null']), true);
         $core->deleteMessage($mysqli_result_users['message_id']);
@@ -108,14 +109,12 @@ switch ($data['text']) {
             $core->deleteMessage($mysqli_result_users['admin_id']);
             $keyboard->keyboard_type = 'inline_keyboard';
 
-            $callback = json_decode($core->sendMessage($text_filling['message']['admin_main_menu'], $keyboard->admin_main_menu()), true);
-            $mysqli->query("CALL PC_update('admin_id = \'{$callback['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
+            $callback_local = json_decode($core->sendMessage($text_filling['message']['admin_main_menu'], $keyboard->admin_main_menu()), true);
+            $mysqli->query("CALL PC_update('admin_id = \'{$callback_local['result']['message_id']}\'', 'users', 'user_id', '$user_id')");
         }
         break;
 
     case $text_filling['keyboard']['main']['history_order']:
-
-//        if ($mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id")->rowCount() <= 50) {
         $mysqli_order_general = $mysqli->query("SELECT * FROM order_general WHERE user_id LIKE $user_id ORDER BY id DESC")->fetchAll();
 
         $caption = "————————————————————————
@@ -129,7 +128,7 @@ switch ($data['text']) {
 ————————————————————————\n\n";
         $i = 0;
         foreach ($mysqli_order_general as $item) {
-            if ($i >= 20)
+            if ($i >= 10)
                 break;
             else
                 $i++;
@@ -143,15 +142,12 @@ switch ($data['text']) {
 
             $caption .= "————————————————————————\n";
             $caption .= "<b>|</b> $is_status <b>|</b> <b>/my_order__{$item['id']}</b> <b>|</b> {$item['date_time']} <b>|</b> {$item['payment_amount']} {$text_filling['currency']}\n";
-
-            unset($is_delivery);
-
         }
 
         if (count($mysqli_order_general) != 0)
             $caption .= "————————————————————————";
         $keyboard->keyboard_type = 'inline_keyboard';
-        if (count($mysqli_order_general) > 20) {
+        if (count($mysqli_order_general) > 10) {
             $keyboard->callback_data_type = 'next';
 
         }

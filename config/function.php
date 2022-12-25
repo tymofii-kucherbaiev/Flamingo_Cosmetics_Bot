@@ -462,18 +462,6 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
-    public function profile_favorite(): bool|string
-    {
-        if ($this->callback_data_action == 'primary')
-            $this->add(text: $this->text_filling['keyboard']['favorite']['next'], action: 'favorite_next', row: 0, col: 0);
-        else {
-            $this->add(text: $this->text_filling['keyboard']['favorite']['back'], action: 'favorite_back', row: 0, col: 0);
-            $this->add(text: $this->text_filling['keyboard']['favorite']['back'], action: 'favorite_back', row: 0, col: 1);
-        }
-
-        return json_encode($this->keyboard);
-    }
-
     public function product_card(): bool|string
     {
         $row = 0;
@@ -558,6 +546,34 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
         return json_encode($this->keyboard);
     }
 
+    public function profile_favorite(): bool|string
+    {
+        if ($this->callback_data_type == 'scroll') {
+            $this->add(text: $this->text_filling['keyboard']['scroll']['back'], action: 'profile_favorite',
+                type: 'back', variation: $this->callback_data_variation, row: 0, col: 0);
+
+            $this->add(text: $this->text_filling['keyboard']['scroll']['next'], action: 'profile_favorite',
+                type: 'next', variation: $this->callback_data_variation, row: 0, col: 1);
+
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 1, col: 0);
+        } elseif ($this->callback_data_type == 'next') {
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 0, col: 0);
+
+            $this->add(text: $this->text_filling['keyboard']['scroll']['next'], action: 'profile_favorite',
+                type: 'next', variation: $this->callback_data_variation, row: 0, col: 1);
+        } elseif ($this->callback_data_type == 'back') {
+            $this->add(text: $this->text_filling['keyboard']['scroll']['back'], action: 'profile_favorite',
+                type: 'back', variation: $this->callback_data_variation, row: 0, col: 0);
+
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 0, col: 1);
+        } else {
+            $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: 0, col: 0);
+        }
+
+
+        return json_encode($this->keyboard);
+    }
+
     public function close(): bool|string
     {
         $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: $this->callback_data_type, row: 0, col: 0);
@@ -568,9 +584,10 @@ GROUP BY {$this->callback_data_type}_id, $this->callback_data_type.count_charact
     /* Admin zone */
     public function admin_main_menu(): bool|string
     {
-        $this->add(text: $this->text_filling['keyboard']['admin']['edit_profile'], action: 'admin', type: 'edit_profile', row: 0, col: 0);
-        $this->add(text: $this->text_filling['keyboard']['admin']['order_main_menu'], action: 'admin', type: 'order_list', row: 0, col: 1);
+        $this->add(text: $this->text_filling['keyboard']['admin']['edit_profile'], action: 'admin', type: 'edit_profile', row: $row = 0, col: 0);
+        $this->add(text: $this->text_filling['keyboard']['admin']['order_main_menu'], action: 'admin', type: 'order_list', row: $row++, col: 1);
 
+        $this->add(text: $this->text_filling['keyboard']['close'], action: 'close', type: 'extra', row: $row, col: 0);
 
         return json_encode($this->keyboard);
     }
